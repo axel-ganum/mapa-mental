@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
   const [user, setUser] = useState({
     name: 'Ramdom',
     email: 'ramdom@example.com',
@@ -91,17 +92,26 @@ const Profile = () => {
             </div>
             <div className="mb-4">
               <label className="block text-gray-700">Foto de Perfil:</label>
-              <div className="relative">
+              <div className="relative group">
                 <img
-                  src={user.profilePic || 'path_to_default_image_if_needed'}
+                  src={user.profilePic || 'https://via.placeholder.com/150'}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full mx-auto mb-2"
+                  className="w-32 h-32 rounded-full mx-auto mb-2 cursor-pointer"
+                  onClick={() => setShowFullImage(true)}
                 />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('fileInputForm').click()}
+                  className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full"
+                >
+                  ✎
+                </button>
                 <input
                   type="file"
                   accept="image/*"
+                  id="fileInputForm"
                   onChange={handleImageChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  className="hidden"
                 />
               </div>
             </div>
@@ -113,6 +123,7 @@ const Profile = () => {
                 Guardar Cambios
               </button>
               <button
+                type="button"
                 onClick={() => setIsEditing(false)}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >
@@ -125,21 +136,25 @@ const Profile = () => {
             <div className="flex items-center mb-4">
               <div className="relative group">
                 <img
-                  src={user.profilePic || 'path_to_default_image_if_needed'}
+                  src={user.profilePic || 'https://via.placeholder.com/150'}
                   alt="Profile"
-                  className="w-16 h-16 rounded-full mr-4"
+                  className="w-16 h-16 rounded-full mr-4 cursor-pointer"
+                  onClick={() => setShowFullImage(true)}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                  <label className="text-white cursor-pointer">
-                    Cambiar
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('fileInput').click()}
+                  className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full"
+                >
+                  ✎
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="fileInput"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
               </div>
               <div>
                 <h3 className="text-xl font-bold">{user.name}</h3>
@@ -163,6 +178,7 @@ const Profile = () => {
 
             <div className="mt-6">
               <button
+                type="button"
                 onClick={() => setIsEditing(true)}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
               >
@@ -175,8 +191,22 @@ const Profile = () => {
           </div>
         )}
       </div>
+
+      {showFullImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <img
+            src={user.profilePic}
+            alt="Profile"
+            className="w-auto h-auto max-w-full max-h-full"
+            onClick={() => setShowFullImage(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 export default Profile;
+
+
+
