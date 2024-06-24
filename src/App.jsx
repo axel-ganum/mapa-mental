@@ -5,10 +5,12 @@ import Home from './componente/Home';
 import Profile from './componente/Profile';
 import Maps from './componente/Maps';
 import MapaEditos from './componente/MapaEditos';
+import { ReactFlowProvider } from 'react-flow-renderer'
 
 const App = () => {
   return (
     <Router>
+      
       <div>
       <NavBar/>
        <Routes>     
@@ -18,7 +20,7 @@ const App = () => {
           <Route path='/maps'  element={<Maps/>} />
         </Routes>
       </div>
-
+    
 
     </Router>
   )
