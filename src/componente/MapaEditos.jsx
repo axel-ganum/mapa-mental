@@ -8,10 +8,12 @@ import ReactFlow, {
   useEdgesState,
 } from 'react-flow-renderer';
 import 'tailwindcss/tailwind.css';
-import NodeContent from './NodeContent'
-// Componente para el contenido del nodo
+import NodeContent from './NodeContent';
+import MyCustomNode from './MyCustomNode';
 
-
+const nodeType = {
+  custom: MyCustomNode
+}
 // Componente principal del mapa mental
 const MapaEditor = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -23,12 +25,11 @@ const MapaEditor = () => {
     const newNodeId = `${nodeIdCounter}`;
     const newNode = {
       id: newNodeId,
-      type: 'default',
+      type: 'custom',
       data: {
         label: (
           <NodeContent
             text={`Nuevo Nodo ${nodeIdCounter}`}
-            onAddNode={() => addNode({ x: position.x + 200, y: position.y })}
             onRemoveNode={() => removeNode(newNodeId)}
           />
         ),
@@ -86,6 +87,7 @@ const MapaEditor = () => {
           onNodeDoubleClick={onNodeDoubleClick}
           snapToGrid={true}
           snapGrid={[15, 15]}
+          nodeTypes={nodeType}
           style={{ width: '100%', height: '100%' }}
         >
           <Controls className="top-0" />
