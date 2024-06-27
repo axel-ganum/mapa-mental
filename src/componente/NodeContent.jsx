@@ -1,4 +1,3 @@
-// Componente para el contenido del nodo
 const NodeContent = ({ text, onChange, onAddNode, onRemoveNode }) => {
   return (
     <div className="relative p-4 bg-white border border-gray-300 rounded-lg shadow-md">
@@ -22,3 +21,5 @@ const NodeContent = ({ text, onChange, onAddNode, onRemoveNode }) => {
     </div>
   );
 };
+
+export default NodeContent
