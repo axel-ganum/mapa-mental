@@ -1,12 +1,29 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 const NodeContent = ({ text, onChange, onRemoveNode }) => {
+  const textareaRef = useRef(null);
+
+  const handleTextareaChange = (e) => {
+    const textarea = textareaRef.current;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+    onChange(e);
+  };
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [text]);
+
   return (
-    <div className="relative p-4 bg-white border border-gray-300 rounded-lg shadow-md min-w-full min-h-full">
+    <div className="relative p-4 bg-white border border-gray-300 rounded-lg shadow-md">
       <textarea
-        className="w-full h-full p-2 border-none resize-none focus:outline-none"
+        ref={textareaRef}
+        className="w-full p-2 border-none resize-none focus:outline-none overflow-hidden"
         defaultValue={text}
-        onChange={onChange}
+        onChange={handleTextareaChange}
+        style={{ height: 'auto' }}
       />
       <button
         onClick={onRemoveNode}
@@ -19,5 +36,6 @@ const NodeContent = ({ text, onChange, onRemoveNode }) => {
 };
 
 export default NodeContent;
+
 
 
