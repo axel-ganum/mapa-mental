@@ -39,25 +39,15 @@ useEffect(() => {
   return (
     <div className='container mx-auto p-6'>
     <h2 className='text-2xl font-semibold mb-4'>Todos los Mapas</h2>
-    { loading ? (
-      <p>cargando mapas...</p>
-    ):
-   mapas.length > 0 ? (
+    {mapas.length > 0 ? (
     <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
       {mapas.map((mapa) => (
         <div key={mapa._id} className='bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200'>
           <div className='p-4'>
-            <h3 className='text-lg font-semibold mb-2'>{mapa.title}</h3>
-           {mapa.thumbnail ? (
-            <img src={mapa.thumbnail.startsWith('data:image') ? mapa.thumbnail : `data:image/png;base64,${mapa.thumbnail}`}
-            alt={mapa.title} 
-            className='w-full h-auto object-cover mb-4 rounded-lg'
-             />
-           ) : ( 
-             <p className='text-gray-500'>No hay imagen disponible</p>
-           )}
-            <p className='text-gray-600'>Miembro: {mapa.usernama}</p>
-            <p className='text-gray-600'>Creado:{new Date(mapa.updatedAt).toLocaleDateString()}</p>
+            <h3 className='text-lg font-semibold mb-2'>{mapa.nombre}</h3>
+            <img src={mapa.imagen} alt={mapa.nombre} className='w-full h-auto object-cover mb-4 rounded-lg' style={{ maxHeight: '150px' }} />
+            <p className='text-gray-600'>Miembros: {mapa.miembros}</p>
+            <p className='text-gray-600'>Modificado: {mapa.modificado}</p>
           </div>
         </div>
       ))}

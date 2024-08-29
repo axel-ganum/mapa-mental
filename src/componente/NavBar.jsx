@@ -50,6 +50,23 @@ const NavBar = () => {
            className='hover:text-gray-300'
            onClick={() => setIopen(false)} 
            >Perfil</Link></li>
+           <li>
+            <Link 
+            to= '/login'
+            className='hover:text-gray-300'
+            onClick={() => setIopen(false)}
+            >
+               Iniciar Sesión
+            </Link>
+           </li>
+           <li>
+            <Link
+            to='/register'
+            className='hover:text-gray-300'
+            onClick={() => setIopen(false)}>
+              Registrarse
+            </Link>
+           </li>
          <li> 
           
           <Link

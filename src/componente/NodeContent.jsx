@@ -7,7 +7,12 @@ const NodeContent = ({ text, onChange, onRemoveNode }) => {
     const textarea = textareaRef.current;
     textarea.style.height = 'auto';
     textarea.style.height = `${textarea.scrollHeight}px`;
-    onChange(e);
+    if(onChange) {
+      onChange(e.target.value);
+    
+    } else {
+      console.error('onChange no es una funcion');
+    }
   };
 
   useEffect(() => {
