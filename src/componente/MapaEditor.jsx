@@ -109,7 +109,30 @@ const MapaEditor = () => {
       try {
 
         const element = reactFlowWrapper.current;
-        const canvas = await html2canvas(element)
+        
+        const scale = 2
+
+      const clone = element.cloneNode(true);
+      clone.style.position = 'absolute';
+      clone.style.left = '-9999px';
+      clone.style.transform = `scale(${scale})`; 
+      clone.style.transform = '0 0';
+      document.body.appendChild(clone);
+
+
+
+      
+      const scrollWidth = clone.scrollWidth * scale;
+      const scrollHeight = clone.scrollHeight * scale; 
+      
+      const canvas = await html2canvas(clone, {
+        width: scrollWidth,
+        height: scrollHeight,
+        useCORS: true
+      });
+      
+      document.body.removeChild(clone)
+
         const image = canvas.toDataURL('image/png');
 
       const map = {
