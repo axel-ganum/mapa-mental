@@ -12,6 +12,7 @@ import NodeContent from './NodeContent';
 import MyCustomNode from './MyCustomNode';
 import {useRef} from 'react';
 import html2canvas from 'html2canvas';
+import { useLocation, useNavigate} from 'react-router-dom';
 
 
 const nodeType = {
@@ -30,8 +31,12 @@ const MapaEditor = () => {
   const reconectInter = useRef(null);
   const reactFlowWrapper = useRef(null)
   const ws = useRef(null);
+  const location = useLocation();
+ 
 
 
+  const queryParams = new URLSearchParams(location.search);
+  const queryMapid = queryParams.get('id') 
 
   const connectWebSocet = () => {
     //el usuario se logea 
@@ -48,6 +53,11 @@ const MapaEditor = () => {
     ws.current.onopen = () => {
       console.log('WebSocket conectado');
       clearInterval(reconectInter.current);
+
+      if (queryMapid ) {
+        ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
+
+      }
     };
 // si no entra aca si esta cerrado he intenta reconectarse
     ws.current.onclose = () => {
@@ -59,6 +69,10 @@ const MapaEditor = () => {
       const response = JSON.parse(event.data);
      if (response.success && response.map) {
       setMapId(response.map._id);
+      setTitle(response.map.title);
+      setDescription(response.map.description);
+      setNodes(response.map.edges);
+      setShoeModal(false)
       // si da error entra aca
      } else if (response.error) {
       console.error('Error del WebSocket:', response.error);
@@ -144,6 +158,7 @@ const MapaEditor = () => {
         const image = canvas.toDataURL('image/png', 1.0);
 
       const map = {
+        id: mapId,
         title,
         description,
         nodes,

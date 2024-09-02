@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react' 
-
+import { useNavigate } from 'react-router-dom'
 
 const Maps = () => {
 const [mapas, setMapas] = useState([]);
 const [loading, setLoading] = useState(true);
+const navigate = useNavigate();
 
 useEffect(() => {
   const fetchMapas = async () => {
@@ -35,7 +36,9 @@ useEffect(() => {
   fetchMapas();
 }, []);
 
-
+const handleViewMore = (mapa_id) => {
+  navigate(`/edit?id =${mapa_id}`)
+}
   return (
     <div className="container mx-auto p-6">
   <h2 className="text-2xl font-semibold mb-4">Todos los Mapas</h2>
@@ -83,6 +86,13 @@ useEffect(() => {
                   Creado: {new Date(mapa.updatedAt).toLocaleDateString()}
                 </p>
               </div>
+            </div>
+            <div className='p-4 flex justify-end'>
+               <button 
+               onClick={() => handleViewMore(mapa._id)}
+               className='bg-blue-500 text-white px-4 rounded hover:bg-blue-600 transition-transform hover:scale-105'>
+                Ver más
+               </button>
             </div>
           </div>
         );
