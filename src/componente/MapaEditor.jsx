@@ -12,7 +12,7 @@ import NodeContent from './NodeContent';
 import MyCustomNode from './MyCustomNode';
 import {useRef} from 'react';
 import html2canvas from 'html2canvas';
-import { useLocation, useNavigate} from 'react-router-dom';
+import { useLocation, useNavigate, useParams} from 'react-router-dom';
 
 
 const nodeType = {
@@ -33,66 +33,77 @@ const MapaEditor = () => {
   const ws = useRef(null);
   const location = useLocation();
  
+ 
 
 
   const queryParams = new URLSearchParams(location.search);
   const queryMapid = queryParams.get('id') 
 
-  const connectWebSocet = () => {
-    //el usuario se logea 
+  const connectWebSocket = () => {
     const token = localStorage.getItem('token');
-    // en caso de que el token sea incorecto entra aca
-    if(!token) {
-      console.error('Token no esncontrado');
+    if (!token) {
+      console.error('Token no encontrado');
       return;
     }
-
-    // si no entra aca a la backend con el token
+  
+    // Crear una nueva instancia del WebSocket
     ws.current = new WebSocket(`ws://localhost:3000?token=${token}`);
-// entra aca si el backend esta conectado
+  
+    // Evento cuando el WebSocket se conecta
     ws.current.onopen = () => {
       console.log('WebSocket conectado');
       clearInterval(reconectInter.current);
-
-      if (queryMapid ) {
+  
+      if (queryMapid) {
         ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
-
       }
     };
-// si no entra aca si esta cerrado he intenta reconectarse
-    ws.current.onclose = () => {
-      console.log('Websocket desconectado, reintentando conexion...', event.reason);
-      reconectInter.current = setInterval(connectWebSocet, 5000);
-    };
-// envia la data a al backend
+  
+    // Evento cuando llega un mensaje del WebSocket
     ws.current.onmessage = (event) => {
       const response = JSON.parse(event.data);
-     if (response.success && response.map) {
-      setMapId(response.map._id);
-      setTitle(response.map.title);
-      setDescription(response.map.description);
-      setNodes(response.map.edges);
-      setShoeModal(false)
-      // si da error entra aca
-     } else if (response.error) {
-      console.error('Error del WebSocket:', response.error);
-     }
+      if (response.success && response.map) {
+        setMapId(response.map._id);
+        setTitle(response.map.title);
+        setDescription(response.map.description);
+        setNodes(response.map.nodes); // Asegúrate de usar 'nodes' en lugar de 'edges'
+        setEdges(response.map.edges); // Agrega esto para manejar también los edges
+        setShoeModal(false);
+      } else if (response.error) {
+        console.error('Error del WebSocket:', response.error);
+      }
+    };
+  
+    // Evento cuando ocurre un error en el WebSocket
+    ws.current.onerror = (error) => {
+      console.error('Error del WebSocket', error.message);
+    };
+  
+    // Evento cuando el WebSocket se cierra
+    ws.current.onclose = (event) => {
+      console.log('WebSocket desconectado, reintentando conexión...', event.reason);
+      reconectInter.current = setInterval(connectWebSocket, 5000);
+    };
   };
-  ws.current.onerror = (error) => {
-    console.error('error del webSocket', error.message )
-  }
-}
+    
 
-  useEffect(() => {
-    connectWebSocet();
 
-    return () => {
-     if (ws.current) {
+    
+// envia la data a al backend
+   
+
+
+
+useEffect(() => {
+  connectWebSocket(); 
+
+  return () => {
+    if (ws.current) {
       ws.current.close();
-     }
-     clearInterval(reconectInter.current)
     }
-  }, []);
+    clearInterval(reconectInter.current);
+  };
+}, [queryMapid]);
 
   useEffect(() => {
     if(!showModal) {

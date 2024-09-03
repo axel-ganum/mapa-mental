@@ -37,7 +37,7 @@ useEffect(() => {
 }, []);
 
 const handleViewMore = (mapa_id) => {
-  navigate(`/edit?id =${mapa_id}`)
+  navigate(`/edit?id=${mapa_id}`)
 }
   return (
     <div className="container mx-auto p-6">
