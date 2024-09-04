@@ -12,7 +12,7 @@ import NodeContent from './NodeContent';
 import MyCustomNode from './MyCustomNode';
 import {useRef} from 'react';
 import html2canvas from 'html2canvas';
-import { useLocation, useNavigate, useParams} from 'react-router-dom';
+import { useLocation} from 'react-router-dom';
 
 
 const nodeType = {
