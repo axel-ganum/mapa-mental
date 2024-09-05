@@ -13,6 +13,7 @@ import MyCustomNode from './MyCustomNode';
 import {useRef} from 'react';
 import html2canvas from 'html2canvas';
 import { useLocation} from 'react-router-dom';
+import { data } from 'autoprefixer';
 
 
 const nodeType = {
@@ -62,13 +63,37 @@ const MapaEditor = () => {
     // Evento cuando llega un mensaje del WebSocket
     ws.current.onmessage = (event) => {
       const response = JSON.parse(event.data);
-      if (response.success && response.map) {
+      console.log('Mensaje recibido:', response);
+     ;
+      
+      
+      if (response.type === 'success' && response.map) {
+
+        console.log('ID del mapa:', response.map._id);
+        console.log('Título del mapa:', response.map.title);
+        console.log('Descripción del mapa:', response.map.description);
+        console.log('Nodos del mapa:', response.map.nodes);
+        console.log('Aristas del mapa:', response.map.edges)
+
+
+        console.log('Nodos del mapa:', response.map.nodes);
+        response.map.nodes.forEach((node, index) => {
+          console.log(`Nodo ${index + 1}:`, node);
+        });
+    
+        // Verificar aristas en detalle
+        console.log('Aristas del mapa:', response.map.edges);
+        response.map.edges.forEach((edge, index) => {
+          console.log(`Arista ${index + 1}:`, edge);
+        });
         setMapId(response.map._id);
         setTitle(response.map.title);
         setDescription(response.map.description);
-        setNodes(response.map.nodes); // Asegúrate de usar 'nodes' en lugar de 'edges'
-        setEdges(response.map.edges); // Agrega esto para manejar también los edges
+        setNodes(restoreNodes(response.map.nodes)); // Asegúrate de usar 'nodes' en lugar de 'edges'
+        setEdges(restoreEdges(response.map.edges)); // Agrega esto para manejar también los edges
         setShoeModal(false);
+
+        
       } else if (response.error) {
         console.error('Error del WebSocket:', response.error);
       }
@@ -84,12 +109,30 @@ const MapaEditor = () => {
       console.log('WebSocket desconectado, reintentando conexión...', event.reason);
       reconectInter.current = setInterval(connectWebSocket, 5000);
     };
-  };
+  }; 
+
+  const restoreNodes = (savedNodes) => {
+    return savedNodes.map((node) => ({
+      ...node,
+      data: {
+        ...node.data,
+        label: (
+          <NodeContent
+          text={node.content || ''}
+          onChange={(value) => handleNodeChange(value, node.id)}
+          onRemoveNode={() => removeNode(node.id)}
+           />
+        ),
+      },
+      style: node.style || { style: { borderRadius: '12px', padding: '10px' } },
+      }))
+  }
+  
     
 
 
     
-// envia la data a al backend
+
    
 
 
@@ -104,6 +147,13 @@ useEffect(() => {
     clearInterval(reconectInter.current);
   };
 }, [queryMapid]);
+
+const restoreEdges = (savedEdges) => {
+  return savedEdges.map((edge) => ({
+    ...edge,
+    style: { stroke: '#000', strokeWidth: 2},
+  }))
+}
 
   useEffect(() => {
     if(!showModal) {
