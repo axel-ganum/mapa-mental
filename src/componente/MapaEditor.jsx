@@ -114,6 +114,7 @@ const MapaEditor = () => {
   const restoreNodes = (savedNodes) => {
     return savedNodes.map((node) => ({
       ...node,
+      type: 'custom',
       data: {
         ...node.data,
         label: (
@@ -278,7 +279,7 @@ const restoreEdges = (savedEdges) => {
 
   // Función para manejar nuevas conexiones
   const onConnect = (params) =>
-    setEdges((eds) => addEdge({ ...params, style: { strokeWidth: 2 } }, eds));
+    setEdges((eds) => addEdge({ ...params, style: { stroke: '#000', strokeWidth: 2} }, eds));
 
   // Función para eliminar nodos y bordes
   const onElementsRemove = (elementsToRemove) => {
