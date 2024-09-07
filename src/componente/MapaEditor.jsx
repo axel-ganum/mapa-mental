@@ -27,6 +27,7 @@ const MapaEditor = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [nodeIdCounter, setNodeIdCounter] = useState(1);
   const [showModal, setShoeModal] = useState(true);
+  const [loading, setLoading] = useState(true)
   const [mapId, setMapId] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const reconectInter = useRef(null);
@@ -91,11 +92,13 @@ const MapaEditor = () => {
         setDescription(response.map.description);
         setNodes(restoreNodes(response.map.nodes)); // Asegúrate de usar 'nodes' en lugar de 'edges'
         setEdges(restoreEdges(response.map.edges)); // Agrega esto para manejar también los edges
+        setLoading(false);
         setShoeModal(false);
 
         
       } else if (response.error) {
         console.error('Error del WebSocket:', response.error);
+        setLoading(false)
       }
     };
   
@@ -303,7 +306,12 @@ const restoreEdges = (savedEdges) => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-    {showModal && (
+      {loading? (
+         <div className="flex items-center justify-center h-full">
+         <span>Cargando mapa mental...</span>
+       </div>
+      ):
+      showModal && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
         <div className="bg-white p-4 rounded shadow-md">
           <h2 className="text-xl font-bold mb-4">Crear nuevo mapa mental</h2>
