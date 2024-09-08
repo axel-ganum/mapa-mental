@@ -13,7 +13,7 @@ import MyCustomNode from './MyCustomNode';
 import {useRef} from 'react';
 import html2canvas from 'html2canvas';
 import { useLocation} from 'react-router-dom';
-import { data } from 'autoprefixer';
+
 
 
 const nodeType = {
@@ -69,6 +69,15 @@ const MapaEditor = () => {
       
       
       if (response.type === 'success' && response.map) {
+
+        if(response.action ==='saveMap') {
+          console.log('Mpa creado exitosamente:', response.map);
+
+          setMapId(response.map._id)
+        } else if (response.action === 'updateMap') {
+          console.log('Mapa actualizado exitosamente');
+          
+        }
 
         console.log('ID del mapa:', response.map._id);
         console.log('Título del mapa:', response.map.title);
@@ -231,8 +240,11 @@ const restoreEdges = (savedEdges) => {
         thumbnail: image
       };
       console.log('Mapa mental guardado:', map)
-      ws.current.send(JSON.stringify({ action: 'saveMap', payload: map})); 
-      //console.log('Mensaje enviado:', message)
+
+      const actionType = mapId? 'updateMap': 'saveMap'
+      console.log(`Accón a realizar: ${actionType}`)
+      ws.current.send(JSON.stringify({ action: actionType, payload: map})); 
+   
       setHasChanges(false);
 
     } catch (error) {
