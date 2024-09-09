@@ -26,8 +26,8 @@ const MapaEditor = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [nodeIdCounter, setNodeIdCounter] = useState(1);
-  const [showModal, setShoeModal] = useState(true);
-  const [loading, setLoading] = useState(true)
+  const [showModal, setShoeModal] = useState(false);
+  const [loading, setLoading] = useState(false)
   const [mapId, setMapId] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const reconectInter = useRef(null);
@@ -40,6 +40,17 @@ const MapaEditor = () => {
 
   const queryParams = new URLSearchParams(location.search);
   const queryMapid = queryParams.get('id') 
+
+  useEffect(() => {
+ if(queryMapid){
+
+  setLoading(true);
+  setShoeModal(false)
+ } else {
+   setLoading(false);
+   setShoeModal(true);
+ }
+  },[queryMapid])
 
   const connectWebSocket = () => {
     const token = localStorage.getItem('token');
@@ -55,10 +66,12 @@ const MapaEditor = () => {
     ws.current.onopen = () => {
       console.log('WebSocket conectado');
       clearInterval(reconectInter.current);
-  
+      
       if (queryMapid) {
+
+     
         ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
-      }
+      } 
     };
   
     // Evento cuando llega un mensaje del WebSocket
@@ -159,7 +172,7 @@ useEffect(() => {
     }
     clearInterval(reconectInter.current);
   };
-}, [queryMapid]);
+}, []);
 
 const restoreEdges = (savedEdges) => {
   return savedEdges.map((edge) => ({
