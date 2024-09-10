@@ -11,6 +11,8 @@ import 'tailwindcss/tailwind.css';
 import NodeContent from './NodeContent';
 import MyCustomNode from './MyCustomNode';
 import {useRef} from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'
 import html2canvas from 'html2canvas';
 import { useLocation} from 'react-router-dom';
 
@@ -59,7 +61,10 @@ const MapaEditor = () => {
       return;
     }
   
-    // Crear una nueva instancia del WebSocket
+    if (ws.current) {
+      ws.current.close()
+    }
+
     ws.current = new WebSocket(`ws://localhost:3000?token=${token}`);
   
     // Evento cuando el WebSocket se conecta
@@ -78,45 +83,37 @@ const MapaEditor = () => {
     ws.current.onmessage = (event) => {
       const response = JSON.parse(event.data);
       console.log('Mensaje recibido:', response);
-     ;
-      
-      
+       
+      console.log('Response type:', response.type)
+      console.log('Response action', response.action);
+      console.log('Response map', response.map)
+
+
+
       if (response.type === 'success' && response.map) {
 
         if(response.action ==='saveMap') {
           console.log('Mpa creado exitosamente:', response.map);
-
-          setMapId(response.map._id)
+           setMapId(response.map._id);
+           toast.success('Mapa creado exitosamente')
+           setShoeModal(false);
+           setLoading(false)
         } else if (response.action === 'updateMap') {
           console.log('Mapa actualizado exitosamente');
+          toast.success('Mapa actualizado exitosamente');
+          setShoeModal(false);
+          setLoading(false)
+        }else if(response.action === 'getMap' && response.map){
+          console.log('Respuesta con el mapa mental:', response);
           
-        }
-
-        console.log('ID del mapa:', response.map._id);
-        console.log('Título del mapa:', response.map.title);
-        console.log('Descripción del mapa:', response.map.description);
-        console.log('Nodos del mapa:', response.map.nodes);
-        console.log('Aristas del mapa:', response.map.edges)
-
-
-        console.log('Nodos del mapa:', response.map.nodes);
-        response.map.nodes.forEach((node, index) => {
-          console.log(`Nodo ${index + 1}:`, node);
-        });
-    
-        // Verificar aristas en detalle
-        console.log('Aristas del mapa:', response.map.edges);
-        response.map.edges.forEach((edge, index) => {
-          console.log(`Arista ${index + 1}:`, edge);
-        });
         setMapId(response.map._id);
         setTitle(response.map.title);
         setDescription(response.map.description);
-        setNodes(restoreNodes(response.map.nodes)); // Asegúrate de usar 'nodes' en lugar de 'edges'
-        setEdges(restoreEdges(response.map.edges)); // Agrega esto para manejar también los edges
+        setNodes(restoreNodes(response.map.nodes)); 
+        setEdges(restoreEdges(response.map.edges)); 
         setLoading(false);
         setShoeModal(false);
-
+        }
         
       } else if (response.error) {
         console.error('Error del WebSocket:', response.error);
@@ -127,12 +124,18 @@ const MapaEditor = () => {
     // Evento cuando ocurre un error en el WebSocket
     ws.current.onerror = (error) => {
       console.error('Error del WebSocket', error.message);
+
+      if(!reconectInter.current) {
+        reconectInter.current = setTimeout(connectWebSocket, 5000);
+      }
     };
   
     // Evento cuando el WebSocket se cierra
     ws.current.onclose = (event) => {
       console.log('WebSocket desconectado, reintentando conexión...', event.reason);
-      reconectInter.current = setInterval(connectWebSocket, 5000);
+      if(!reconectInter.current) {
+        reconectInter.current = setTimeout(connectWebSocket, 5000);
+      }
     };
   }; 
 
@@ -170,7 +173,7 @@ useEffect(() => {
     if (ws.current) {
       ws.current.close();
     }
-    clearInterval(reconectInter.current);
+    clearTimeout(reconectInter.current);
   };
 }, []);
 
@@ -331,6 +334,7 @@ const restoreEdges = (savedEdges) => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
+     
       {loading? (
          <div className="flex items-center justify-center h-full">
          <span>Cargando mapa mental...</span>
@@ -381,6 +385,7 @@ const restoreEdges = (savedEdges) => {
         >
           Agregar Nodo
         </button>
+        <ToastContainer/>
         <div className="flex-grow overflow-hidden">
           <div ref={reactFlowWrapper} style={{ width: '100%', height: '100%' }}>
           <ReactFlow
