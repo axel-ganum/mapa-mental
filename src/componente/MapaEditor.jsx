@@ -30,6 +30,7 @@ const MapaEditor = () => {
   const [nodeIdCounter, setNodeIdCounter] = useState(1);
   const [showModal, setShoeModal] = useState(false);
   const [loading, setLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false);
   const [mapId, setMapId] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const reconectInter = useRef(null);
@@ -68,57 +69,23 @@ const MapaEditor = () => {
     ws.current = new WebSocket(`ws://localhost:3000?token=${token}`);
   
     // Evento cuando el WebSocket se conecta
-    ws.current.onopen = () => {
+    ws.current.onopen = async () => {
       console.log('WebSocket conectado');
       clearInterval(reconectInter.current);
       
       if (queryMapid) {
 
      
-        ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
+        await ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
       } 
     };
   
     // Evento cuando llega un mensaje del WebSocket
-    ws.current.onmessage = (event) => {
+    ws.current.onmessage = async (event) => {
       const response = JSON.parse(event.data);
       console.log('Mensaje recibido:', response);
        
-      console.log('Response type:', response.type)
-      console.log('Response action', response.action);
-      console.log('Response map', response.map)
-
-
-
-      if (response.type === 'success' && response.map) {
-
-        if(response.action ==='saveMap') {
-          console.log('Mpa creado exitosamente:', response.map);
-           setMapId(response.map._id);
-           toast.success('Mapa creado exitosamente')
-           setShoeModal(false);
-           setLoading(false)
-        } else if (response.action === 'updateMap') {
-          console.log('Mapa actualizado exitosamente');
-          toast.success('Mapa actualizado exitosamente');
-          setShoeModal(false);
-          setLoading(false)
-        }else if(response.action === 'getMap' && response.map){
-          console.log('Respuesta con el mapa mental:', response);
-          
-        setMapId(response.map._id);
-        setTitle(response.map.title);
-        setDescription(response.map.description);
-        setNodes(restoreNodes(response.map.nodes)); 
-        setEdges(restoreEdges(response.map.edges)); 
-        setLoading(false);
-        setShoeModal(false);
-        }
-        
-      } else if (response.error) {
-        console.error('Error del WebSocket:', response.error);
-        setLoading(false)
-      }
+      await handleSuccessResponse(response)
     };
   
     // Evento cuando ocurre un error en el WebSocket
@@ -138,7 +105,39 @@ const MapaEditor = () => {
       }
     };
   }; 
-
+    
+  const handleSuccessResponse = async (response) => {
+    if (response.type === 'success' && response.map) {
+      setIsSaving(false);
+   if(response.action ==='saveMap') {
+     console.log('Mpa creado exitosamente:', response.map);
+      setMapId(response.map._id);
+      toast.success('Mapa creado exitosamente')
+      setShoeModal(false);
+      setLoading(false)
+   } else if (response.action === 'updateMap') {
+     console.log('Mapa actualizado exitosamente');
+     toast.success('Mapa actualizado exitosamente');
+     setShoeModal(false);
+     setLoading(false)
+   }else if(response.action === 'getMap' && response.map){
+     console.log('Respuesta con el mapa mental:', response);
+     
+   setMapId(response.map._id);
+   setTitle(response.map.title);
+   setDescription(response.map.description);
+   setNodes(restoreNodes(response.map.nodes)); 
+   setEdges(restoreEdges(response.map.edges)); 
+   setLoading(false);
+   setShoeModal(false);
+   }
+   
+ } else if (response.error) {
+   console.error('Error del WebSocket:', response.error);
+   setLoading(false)
+ }
+    
+  }
   const restoreNodes = (savedNodes) => {
     return savedNodes.map((node) => ({
       ...node,
@@ -209,6 +208,7 @@ const restoreEdges = (savedEdges) => {
 
 
   const saveMap =  async () => {
+    setIsSaving(true)
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       try {
 
@@ -334,7 +334,7 @@ const restoreEdges = (savedEdges) => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-     
+      {isSaving && <p>Guardando mapa mental...</p>}
       {loading? (
          <div className="flex items-center justify-center h-full">
          <span>Cargando mapa mental...</span>
