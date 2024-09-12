@@ -18,6 +18,7 @@ import { useLocation} from 'react-router-dom';
 
 
 
+
 const nodeType = {
   custom: MyCustomNode
 }
@@ -132,8 +133,8 @@ const MapaEditor = () => {
    setShoeModal(false);
    }
    
- } else if (response.error) {
-   console.error('Error del WebSocket:', response.error);
+ } else if (response.type == 'error') {
+   console.error('Error del WebSocket:', response.message);
    setLoading(false)
  }
     
@@ -141,6 +142,7 @@ const MapaEditor = () => {
   const restoreNodes = (savedNodes) => {
     return savedNodes.map((node) => ({
       ...node,
+      content: node.content || '',
       type: 'custom',
       data: {
         ...node.data,
@@ -265,17 +267,32 @@ const restoreEdges = (savedEdges) => {
 
     } catch (error) {
       console.error('Error al capturar el mapa mental:', error)
-    }
-  } else {
-    console.warn('webSocket no esta en estado OPEN');
+    } 
+  finally {
+     setIsSaving(false)
   }
-  }
+  }}
 
 
   const handleNodeChange = (newValue, nodeId)  =>{
     setNodes((nds) => 
       nds.map((node) =>
-      node.id === nodeId ? {...node, data: {...node.data, label: <NodeContent text={newValue} onChange={(value) => handleNodeChange(value, nodeId)} onRemoveNode={() => removeNode(nodeId)} /> }} :node
+      node.id === nodeId
+        ? {
+          ...node,
+          content: newValue,
+          data: {
+            ...node.data,
+            label: (
+              <NodeContent  
+              text={ newValue}
+              onChange={(value) => handleNodeChange(value, nodeId)}
+              onRemoveNode={() => removeNode(nodeId)}
+              />
+            ),
+          },
+        }
+        : node
     )
   );
   }
