@@ -351,7 +351,6 @@ const restoreEdges = (savedEdges) => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {isSaving && <p>Guardando mapa mental...</p>}
       {loading? (
          <div className="flex items-center justify-center h-full">
          <span>Cargando mapa mental...</span>
@@ -379,7 +378,7 @@ const restoreEdges = (savedEdges) => {
             onClick={handleSaveTitleDescription}
             className="p-2 m-2 text-white bg-green-500 rounded shadow"
           >
-            Guardar
+           Guardar
           </button>
         </div>
       </div>
@@ -391,8 +390,9 @@ const restoreEdges = (savedEdges) => {
             <button
               onClick={saveMap}
               className="p-2 m-2 text-white bg-green-500 rounded shadow"
+              disabled={isSaving}
             >
-              Guardar
+            {isSaving ? 'Guardardando...' : 'Guardar' }
             </button>
           </div>
         </div>
