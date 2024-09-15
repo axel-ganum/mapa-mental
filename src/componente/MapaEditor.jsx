@@ -109,15 +109,17 @@ const MapaEditor = () => {
     
   const handleSuccessResponse = async (response) => {
     if (response.type === 'success' && response.map) {
-      setIsSaving(false);
+    
    if(response.action ==='saveMap') {
      console.log('Mpa creado exitosamente:', response.map);
       setMapId(response.map._id);
+      setIsSaving(false);
       toast.success('Mapa creado exitosamente')
       setShoeModal(false);
       setLoading(false)
    } else if (response.action === 'updateMap') {
      console.log('Mapa actualizado exitosamente');
+     setIsSaving(false);
      toast.success('Mapa actualizado exitosamente');
      setShoeModal(false);
      setLoading(false)
@@ -131,14 +133,21 @@ const MapaEditor = () => {
    setEdges(restoreEdges(response.map.edges)); 
    setLoading(false);
    setShoeModal(false);
-   }
+   } else if (response.action === 'deleteNode') {
+    console.log('Elementos eliminados:', response);
+
+   setNodes((prevNodes) => prevNodes.filter((node) => node.id !== response.nodeId));
+   toast.success('Nodo eliminado exitosamente')
    
  } else if (response.type == 'error') {
    console.error('Error del WebSocket:', response.message);
+
+   toast.error('Error del webSocket:'+ response.message);
+   setIsSaving(false)
    setLoading(false)
  }
     
-  }
+  }}
   const restoreNodes = (savedNodes) => {
     return savedNodes.map((node) => ({
       ...node,
@@ -266,11 +275,12 @@ const restoreEdges = (savedEdges) => {
       setHasChanges(false);
 
     } catch (error) {
-      console.error('Error al capturar el mapa mental:', error)
+      console.error('Error al capturar el mapa mental:', error);
+      setIsSaving(false);
     } 
-  finally {
-     setIsSaving(false)
-  }
+ // finally {
+     //setIsSaving(false)
+  //}
   }}
 
 
@@ -336,6 +346,18 @@ const restoreEdges = (savedEdges) => {
 
     setNodes((nds) => nds.filter((node) => !nodesToRemove.includes(node)));
     setEdges((eds) => eds.filter((edge) => !edgesToRemove.includes(edge)));
+
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+
+      const payload = {
+        action:'deleteNode',
+        payload: {
+          nodes: nodesToRemove.map((node) => node.id),
+          edges: edgesToRemove.map((edge) => edge.id),
+        }
+      };
+      ws.current.send(JSON.stringify(payload))
+    }
   };
 
   // Función para manejar doble clic en un nodo
@@ -389,7 +411,7 @@ const restoreEdges = (savedEdges) => {
           <div>
             <button
               onClick={saveMap}
-              className="p-2 m-2 text-white bg-green-500 rounded shadow"
+              className={`p-2 m-2 text-white rounded shadow ${ isSaving? 'bg-gray-400 opacity-50 cursor-not-allowed': 'bg-green-500' }`}
               disabled={isSaving}
             >
             {isSaving ? 'Guardardando...' : 'Guardar' }
