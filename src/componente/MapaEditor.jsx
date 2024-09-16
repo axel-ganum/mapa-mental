@@ -329,10 +329,24 @@ const restoreEdges = (savedEdges) => {
     setNodeIdCounter((id) => id + 1);
   };
 
+ 
   // Función para eliminar un nodo
   const removeNode = (nodeId) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+
+      const payload = {
+        action:'deleteNode',
+        payload: {
+         nodeId:nodeId
+        }
+      };
+      ws.current.send(JSON.stringify(payload))
+       console.log(`Enviando solicitud del nodo ID: ${nodeId} al backend`)
+    }
+   
   };
 
   // Función para manejar nuevas conexiones
@@ -347,17 +361,7 @@ const restoreEdges = (savedEdges) => {
     setNodes((nds) => nds.filter((node) => !nodesToRemove.includes(node)));
     setEdges((eds) => eds.filter((edge) => !edgesToRemove.includes(edge)));
 
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-
-      const payload = {
-        action:'deleteNode',
-        payload: {
-          nodes: nodesToRemove.map((node) => node.id),
-          edges: edgesToRemove.map((edge) => edge.id),
-        }
-      };
-      ws.current.send(JSON.stringify(payload))
-    }
+    
   };
 
   // Función para manejar doble clic en un nodo
