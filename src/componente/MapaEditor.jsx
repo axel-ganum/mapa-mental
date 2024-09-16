@@ -108,7 +108,8 @@ const MapaEditor = () => {
   }; 
     
   const handleSuccessResponse = async (response) => {
-    if (response.type === 'success' && response.map) {
+    console.log('Respuesta recibida desde webSocket:', response)
+    if (response.type === 'success') {
     
    if(response.action ==='saveMap') {
      console.log('Mpa creado exitosamente:', response.map);
@@ -339,9 +340,7 @@ const restoreEdges = (savedEdges) => {
 
       const payload = {
         action:'deleteNode',
-        payload: {
          nodeId:nodeId
-        }
       };
       ws.current.send(JSON.stringify(payload))
        console.log(`Enviando solicitud del nodo ID: ${nodeId} al backend`)
