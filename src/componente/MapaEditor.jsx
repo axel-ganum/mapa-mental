@@ -130,6 +130,7 @@ const MapaEditor = () => {
    setMapId(response.map._id);
    setTitle(response.map.title);
    setDescription(response.map.description);
+   
    setNodes(restoreNodes(response.map.nodes)); 
    setEdges(restoreEdges(response.map.edges)); 
    setLoading(false);
@@ -259,11 +260,21 @@ const restoreEdges = (savedEdges) => {
 
         const image = canvas.toDataURL('image/png', 1.0);
 
+        const uniqueNodes = nodes.reduce((acc, current) => {
+          const x = acc.find(node => node.id === current.id);
+          if (!x) {
+              return acc.concat(current); // Agregar directamente el objeto `current` al array
+          } else {
+              return acc;
+          }
+      }, []);
+      
+
       const map = {
         id: mapId,
         title,
         description,
-        nodes,
+        nodes:uniqueNodes,
         edges,
         thumbnail: image
       };
