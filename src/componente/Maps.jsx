@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react' 
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify';
 
 const Maps = () => {
 const [mapas, setMapas] = useState([]);
@@ -39,6 +40,32 @@ useEffect(() => {
 const handleViewMore = (mapa_id) => {
   navigate(`/editor?id=${mapa_id}`)
 }
+
+ const handleDeleteMap = async (mapa_id) => {
+  const confirmDelte = window.confirm('¿Etás deguro que desea eliminar este mapa mental');
+  if(!confirmDelte) return;
+
+  try {
+     const token = localStorage.getItem('token');
+     const response = await fetch(`http://localhost:3000/maps/${mapa_id}`, {
+      method:'DELETE',
+      headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+      }
+     });
+
+     if(!response.ok) {
+      throw new Error('Error al eliminar el mapa mental');
+     }
+
+     setMapas((prevMapas) => prevMapas.filter((mapa) => mapa_id !== mapa_id));
+     toast.success('Mapa eliminado exitosament')
+  } catch (error) {
+    console.error('Error al eliminar el mapa mental');
+    toast.error('Error al eliminar el mapa mental')
+  }
+ }
   return (
     <div className="container mx-auto p-6">
   <h2 className="text-2xl font-semibold mb-4">Todos los Mapas</h2>
@@ -92,6 +119,12 @@ const handleViewMore = (mapa_id) => {
                onClick={() => handleViewMore(mapa._id)}
                className='bg-blue-500 text-white px-4 rounded hover:bg-blue-600 transition-transform hover:scale-105'>
                 Ver más
+               </button>
+               <button 
+                onClick={() => handleDeleteMap(mapa._id)}
+                className='bg-red-500 text-white px-4 rounded hover:bg-red-600 transition-transform hover:scale-105'
+               >
+                Eliminar
                </button>
             </div>
           </div>
