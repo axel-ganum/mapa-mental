@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react' 
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
+toast.configure();
 const Maps = () => {
 const [mapas, setMapas] = useState([]);
 const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ const handleViewMore = (mapa_id) => {
      }
 
      setMapas((prevMapas) => prevMapas.filter((mapa) => mapa._id !== mapa_id));
-     toast.success('Mapa eliminado exitosament')
+     toast.success('Mapa eliminado exitosamente')
   } catch (error) {
     console.error('Error al eliminar el mapa mental');
     toast.error('Error al eliminar el mapa mental')
@@ -117,7 +119,7 @@ const handleViewMore = (mapa_id) => {
             <div className='p-4 flex justify-end'>
                <button 
                onClick={() => handleViewMore(mapa._id)}
-               className='bg-blue-500 text-white px-4 rounded hover:bg-blue-600 transition-transform hover:scale-105'>
+               className='bg-blue-500 text-white px-4 rounded hover:bg-blue-600 transition-transform hover:scale-105 mr-4'>
                 Ver más
                </button>
                <button 
