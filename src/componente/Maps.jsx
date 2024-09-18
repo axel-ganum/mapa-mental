@@ -59,7 +59,7 @@ const handleViewMore = (mapa_id) => {
       throw new Error('Error al eliminar el mapa mental');
      }
 
-     setMapas((prevMapas) => prevMapas.filter((mapa) => mapa_id !== mapa_id));
+     setMapas((prevMapas) => prevMapas.filter((mapa) => mapa._id !== mapa_id));
      toast.success('Mapa eliminado exitosament')
   } catch (error) {
     console.error('Error al eliminar el mapa mental');
