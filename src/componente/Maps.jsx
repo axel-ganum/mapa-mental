@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react' 
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-toast.configure();
+
 const Maps = () => {
 const [mapas, setMapas] = useState([]);
 const [loading, setLoading] = useState(true);
@@ -70,6 +70,7 @@ const handleViewMore = (mapa_id) => {
  }
   return (
     <div className="container mx-auto p-6">
+      <ToastContainer/>
   <h2 className="text-2xl font-semibold mb-4">Todos los Mapas</h2>
   {loading ? (
     <p>cargando mapas...</p>
