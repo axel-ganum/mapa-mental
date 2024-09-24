@@ -15,7 +15,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
 import html2canvas from 'html2canvas';
 import { useLocation, useNavigate} from 'react-router-dom';
-import userShareMap from '../hooks/userShareMap';
+
 
 
 
@@ -429,7 +429,7 @@ const restoreEdges = (savedEdges) => {
     )}
     {!showModal && (
       <>
-        <div className="p-4 bg-white shadow-md flex justify-between items-center">
+        <div className="p-4 bg-white shadow-md flex justify-between items-center space-x-4 ">
           <div>
             <button
               onClick={saveMap}
@@ -440,16 +440,16 @@ const restoreEdges = (savedEdges) => {
             </button>
           </div>
         </div>
+        <div className="flex items-center justify-between">
         <button
           onClick={() => addNode({ x: Math.random() * 500, y: Math.random() * 300 })}
           className="p-2 m-2 text-white bg-blue-500 rounded shadow self-start"
         >
           Agregar Nodo
         </button>
-        <div className="flex justify-end">
           <button
            onClick={handlesShareButton}
-           className="p-2 m-2 text-white bg-blue-500 rounded shadow"
+           className="p-2 m-2 text-white bg-blue-500 rounded shadow self-start"
           >
             Compartir Mapa
           </button>

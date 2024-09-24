@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import {userParams} from 'react-router-dom'
+import userShareMap from '../hooks/userShareMap.js'
+import {useParams} from 'react-router-dom';
+
 
 const CompartirMapa = ({ws}) => {
-  const {mapId} = userParams()
+  const {mapId} = useParams()
   const [emailToShare, setEmailToShare] = useState('');
   const emailInputRef = useRef('');
 
