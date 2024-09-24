@@ -10,6 +10,7 @@ import LoginForm from './componente/LoginForm';
 import RegisterForm from './componente/RegisterForm';
 import ProtectedRoute from './componente/ProtectedRoute';
 import Logout from './componente/Logout';
+import CompartirMapa from './componente/CompartirMapa';
 const App = () => {
   return (
     <Router>
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/editor" element={<ProtectedRoute element={<MapaEditor />} />} />
         <Route path="/maps" element={<ProtectedRoute element={<Maps />} />} />
       <Route path='/logout' element={<Logout/>} />
+      <Route path='/compartir/:mapId' element={<CompartirMapa/>} />
         </Routes>
       </div>
     

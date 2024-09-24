@@ -14,7 +14,8 @@ import {useRef} from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
 import html2canvas from 'html2canvas';
-import { useLocation} from 'react-router-dom';
+import { useLocation, useNavigate} from 'react-router-dom';
+import userShareMap from '../hooks/userShareMap';
 
 
 
@@ -38,7 +39,9 @@ const MapaEditor = () => {
   const reactFlowWrapper = useRef(null)
   const ws = useRef(null);
   const location = useLocation();
- 
+  const navigate = useNavigate();
+  
+  
  
 
 
@@ -384,7 +387,12 @@ const restoreEdges = (savedEdges) => {
       setShoeModal(false)
     }
   }
+ 
+  const handlesShareButton = () =>{
+    navigate(`/compartir/${mapId}`)
+  }
 
+  
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {loading? (
@@ -438,6 +446,14 @@ const restoreEdges = (savedEdges) => {
         >
           Agregar Nodo
         </button>
+        <div className="flex justify-end">
+          <button
+           onClick={handlesShareButton}
+           className="p-2 m-2 text-white bg-blue-500 rounded shadow"
+          >
+            Compartir Mapa
+          </button>
+        </div>
         <ToastContainer/>
         <div className="flex-grow overflow-hidden">
           <div ref={reactFlowWrapper} style={{ width: '100%', height: '100%' }}>
