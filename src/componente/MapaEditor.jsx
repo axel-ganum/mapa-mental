@@ -15,6 +15,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
 import html2canvas from 'html2canvas';
 import { useLocation, useNavigate} from 'react-router-dom';
+import CompartirMapa from './CompartirMapa';
 
 
 
@@ -39,8 +40,7 @@ const MapaEditor = () => {
   const reactFlowWrapper = useRef(null)
   const ws = useRef(null);
   const location = useLocation();
-  const navigate = useNavigate();
-  
+  const [showShare, setShowShare] = useState(false)
   
  
 
@@ -389,7 +389,8 @@ const restoreEdges = (savedEdges) => {
   }
  
   const handlesShareButton = () =>{
-    navigate(`/compartir/${mapId}`)
+    //navigate(`/compartir/${mapId}`)
+    setShowShare(true)
   }
 
   
@@ -454,6 +455,7 @@ const restoreEdges = (savedEdges) => {
             Compartir Mapa
           </button>
         </div>
+        { showShare && <CompartirMapa ws={ws.current} mapId={mapId}/>}
         <ToastContainer/>
         <div className="flex-grow overflow-hidden">
           <div ref={reactFlowWrapper} style={{ width: '100%', height: '100%' }}>
