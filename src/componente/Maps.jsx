@@ -87,6 +87,23 @@ const handleViewMore = (mapa_id) => {
           >
             <div className="p-4 flex-grow flex flex-col">
               <h3 className="text-lg font-semibold mb-2">{mapa.title}</h3>
+
+              {mapa.sharedWith && mapa.sharedWith.includes(userId) && (
+                <div className='text-sm text-gray-500 italic mb-2'>
+                  Compartido contigo
+                  <div className='mt-1'>
+                  <p className='font-semibold'>Compartir con:</p>
+                  <ul className='list-disc list-inside'>
+                    {mapa.sharedWith.map((user) => (
+                      <li key={user._id} className='text-gray-700'>
+                        {user.username}
+                      </li>
+                    ))}
+                  </ul>
+              </div>
+              </div>
+                
+              )}
               <div
                 className="relative w-full"
                 style={{ height: `${imageHeight}px`, paddingBottom: `${100 / aspectRatio}%`, overflow: 'hidden' }}
