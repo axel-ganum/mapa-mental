@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { type } from 'os';
+
+
 
 const Notifications = ({isModalOpen, onClose}) => {
     const [notifications, setNotifications] = useState([]);
@@ -35,24 +36,24 @@ const Notifications = ({isModalOpen, onClose}) => {
       }
      if(isModalOpen){
       fetchNotifications();
-      setUpWebSocekt();
-      
-     }
-
-       return () => {
-        if(ws) {
-          ws.close();
-        }
        }
 
     },[isModalOpen])
 
     const setUpWebSocekt = () => {
       const token = localStorage.getItem('token');
+      console.log('Conectando WebSocket con token:', token)
       
       const webSocket = new WebSocket(`ws://localhost:3000/ws?token=${token}`);
 
+      webSocket.onopen= () => {
+        console.log('Conexion WebSocket establecido');
+        
+      }
+
       webSocket.onmessage = (event) => {
+        console.log('Mensaje recibido:', event.data);
+        
         const message = JSON.parse(event.data);
         if (message.type === 'new_notification') {
           setNotifications((preventNotificacions) => [message.notification, ...preventNotificacions]);
@@ -67,10 +68,28 @@ const Notifications = ({isModalOpen, onClose}) => {
 
         }
       };
+      
+      webSocket.onerror = (error) =>{
+        console.error('Error en el WebSocket:', error)
+      };
 
+      webSocket.onclose = () =>{
+        console.log('Conexion WebSocket cerrada');
+        
+      }
        setWs(webSocket);
 
     }
+
+useEffect(() => {
+  setUpWebSocekt();
+
+  return () => {
+    if(ws) {
+      ws.close();
+    }
+  }
+}, []);
 
      const hanldeNotificationClick = async (notificationId) => {
       try {
@@ -84,10 +103,10 @@ const Notifications = ({isModalOpen, onClose}) => {
         });
 
         if (ws) {
-           ws.send(JSON.stringify({type:'mark-as-read', notificationId}))
+           ws.send(JSON.stringify({type:'mark_as_read', notificationId}))
         }
 
-        setNotifications(prevNotifications => prevNotifications.filter(n => n._id !== notificationId ))
+        setNotifications((prevNotifications) => prevNotifications.filter((n) => n._id !== notificationId ))
       } catch (error) {
          console.error('Error al marcar como leido', error)
       }

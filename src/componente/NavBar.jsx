@@ -31,7 +31,7 @@ const NavBar = () => {
       throw new Error('Error al obtener el numero de notificaciones no leidas')
      }
       const data = await response.json();
-      setUnreadCount(data.unreadCount)
+      setUnreadCount(data.count)
       
   }catch (error) {
     console.error('Error fetching unread notifications:', error)
@@ -40,30 +40,11 @@ const NavBar = () => {
      
 
   useEffect(() => {
+    
     fetchUnreadNotifications();
-    const interval = setInterval(() => {
-      fetchUnreadNotifications();
-    })
-   return () => clearInterval(interval)
+   
   },[])
 
-  const handleNotificationRead = async (notificationId) => {
-    try {
-      const token = localStorage.getItem('token');
-       
-      await fetch(`http://localhost:3000/notifications/${notificationId}`, {
-        method : 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      fetchUnreadNotifications()
-    } catch (error) {
-      console.error('Error al marcar la notificacion como leida', error)
-    }
-  };
 
 
   return (
@@ -154,11 +135,7 @@ const NavBar = () => {
 
        <Notifications
         isModalOpen ={isModalOpen} 
-        onClose = {() => {
-          setIsModalOpen(false);
-          handleNotificationRead();
-        }}
-        
+        onClose = {() => setIsModalOpen(false)}
        />
     </div>
  );
