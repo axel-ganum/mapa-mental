@@ -1,67 +1,44 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import Notifications from '../componente/Notifications.jsx';
-import '@fortawesome/fontawesome-free/css/all.min.css';
-
+import Notifications from "../componente/Notifications";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import { useWebSocket } from "./context/useWebSocket";
 
 const NavBar = () => {
-  const [isOpen, setIopen] = useState(false);
+  const{ unreadCount, resetUnreadCount} = useWebSocket();
+  const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+
 
   const toggleMenu = () => {
-    setIopen(!isOpen);
+    console.log("Menu toggled, current state:", isOpen);
+    setIsOpen(!isOpen);
   };
 
   const toggleNotificationsModal = () => {
+    console.log("Modal toggled, current state:", isModalOpen);
     setIsModalOpen(!isModalOpen);
-  }
-
-   
-     const fetchUnreadNotifications = async () => {
-      try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/unread', {
-        method : 'GET',
-        headers : {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-     if(!response.ok) {
-      throw new Error('Error al obtener el numero de notificaciones no leidas')
-     }
-      const data = await response.json();
-      setUnreadCount(data.count)
-      
-  }catch (error) {
-    console.error('Error fetching unread notifications:', error)
-  }
-};
-     
-
-  useEffect(() => {
-    
-    fetchUnreadNotifications();
-   
-  },[])
-
+    if (!isModalOpen) {
+      resetUnreadCount();
+    }
+  };
 
 
   return (
     <div className="bg-black p-4">
       <nav className="container mx-auto flex items-center justify-between">
-        <div className=" text-white  text-lg font-bold">Mi Mapa Mental</div>
+        <div className="text-white text-lg font-bold">Mi Mapa Mental</div>
         <div className="block lg:hidden">
           <button
             onClick={toggleMenu}
             className="text-white focus:outline-none focus:text-white"
           >
             <svg
-              className="w-g h-6"
+              className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/sv"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 strokeLinecap="round"
@@ -77,7 +54,7 @@ const NavBar = () => {
               <Link
                 to="/"
                 className="hover:text-gray-300"
-                onClick={() => setIopen(false)}
+                onClick={() => setIsOpen(false)}
               >
                 Home
               </Link>
@@ -87,7 +64,7 @@ const NavBar = () => {
               <Link
                 to="/profile"
                 className="hover:text-gray-300"
-                onClick={() => setIopen(false)}
+                onClick={() => setIsOpen(false)}
               >
                 Perfil
               </Link>
@@ -96,7 +73,7 @@ const NavBar = () => {
               <Link
                 to="/login"
                 className="hover:text-gray-300"
-                onClick={() => setIopen(false)}
+                onClick={() => setIsOpen(false)}
               >
                 Iniciar Sesión
               </Link>
@@ -105,26 +82,26 @@ const NavBar = () => {
               <Link
                 to="/register"
                 className="hover:text-gray-300"
-                onClick={() => setIopen(false)}
+                onClick={() => setIsOpen(false)}
               >
                 Registrarse
               </Link>
             </li>
             <li>
-               <button onClick={toggleNotificationsModal} className="relative">
-                 <i className="fas fa-bell text-white"></i> 
-                  {unreadCount > 0 && (
-                   <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 text-xs">
-                      {unreadCount}
-                   </span>
-                    )}
-               </button>
+              <button onClick={toggleNotificationsModal} className="relative">
+                <i className="fas fa-bell text-white"></i>
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 text-xs">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
             </li>
             <li>
               <Link
                 to="/logout"
                 className="hover:text-gray-300"
-                onClick={() => setIopen(false)}
+                onClick={() => setIsOpen(false)}
               >
                 Salir
               </Link>
@@ -133,12 +110,13 @@ const NavBar = () => {
         </div>
       </nav>
 
-       <Notifications
-        isModalOpen ={isModalOpen} 
-        onClose = {() => setIsModalOpen(false)}
-       />
+      <Notifications
+        isModalOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
- );
+  );
 };
 
 export default NavBar;
+

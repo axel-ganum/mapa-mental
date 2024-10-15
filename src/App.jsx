@@ -11,12 +11,15 @@ import RegisterForm from './componente/RegisterForm';
 import ProtectedRoute from './componente/ProtectedRoute';
 import Logout from './componente/Logout';
 import CompartirMapa from './componente/CompartirMapa';
+import { WebSocketProvider } from './componente/context/WebSocjetContext';
 const App = () => {
   return (
     <Router>
       
       <div>
+      <WebSocketProvider>  
       <NavBar/>
+      </WebSocketProvider>
        <Routes>     
        <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />

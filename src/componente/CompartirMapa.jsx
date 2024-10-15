@@ -25,8 +25,8 @@ const CompartirMapa = ({ws ,mapId}) => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <div className="text-xl font-blod mb-4">
-        <h2 className="text-xl font-blod mb-4">Compartir Mapa Mental</h2>
+      <div className="text-xl font-bold mb-4">
+        <h2 className="text-xl font-bold mb-4">Compartir Mapa Mental</h2>
         <input 
          ref={emailInputRef}
          type="email"
