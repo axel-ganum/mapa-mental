@@ -6,8 +6,8 @@ const Notifications = ({ isModalOpen, onClose }) => {
   const {notifications, unreadCount, markAsRead }  = useWebSocket();
 
 
-  const handleNotificationClick = async (notificationId) => {
-      markAsRead(notificationId)
+  const handleNotificationClick = async (notification) => {
+      markAsRead(notification)
   };
 
   if (!isModalOpen) return null;
@@ -23,11 +23,11 @@ const Notifications = ({ isModalOpen, onClose }) => {
       <ul>
         {notifications.length > 0 ? (
           notifications.map((notification, index) => (
-            
+             
             <li
               key={notification._id || index}
-              className="p-3 hover:bg-gray-100 cursor-pointer"
-              onClick={() => handleNotificationClick(notification._id)}
+              className={`p-3 hover:bg-gray-100 cursor-pointer ${notification.seen ? 'text-gray-500' : 'font-bold'}`}    
+              onClick={() => handleNotificationClick(notification)}
             >
               {notification.message}
             </li>

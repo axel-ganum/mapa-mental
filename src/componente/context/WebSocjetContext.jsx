@@ -27,18 +27,26 @@ export const WebSocketProvider = ({children }) => {
                 };
 
                 webSocket.onclose = () => {
-                    console.log('Conexión WebSocket cerrada');
+                    console.log('Conexión WebSocket cerrada, reintentando en 5 segundos...');
+                    setTimeout(setUpWebSocket, 5000)
                 };
                 webSocket.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     if (data.action === 'notification') {
                         console.log('Notificación recibida:', data.message);
                         const newNotification = {
-                            id: Date.now(), // ID único para cada notificación
+                            _id: data._id, // ID único para cada notificación
                             message: data.message,
-                            read: false // Estado inicial de no leída
+                            seen: false // Estado inicial de no leída
                         };
-                        setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
+                        setNotifications((prevNotifications) => {
+                            if (prevNotifications.find(n => n._id === newNotification._id)) {
+                                 return prevNotifications
+                                
+                            }
+                        
+                          return [newNotification, ...prevNotifications];
+                    });   
                         setUnreadCount((prevCount) => prevCount + 1)
                     }
                 };
@@ -57,17 +65,23 @@ export const WebSocketProvider = ({children }) => {
         };
     }, []); 
 
-        const markAsRead = (notificationId) => {
+        const markAsRead = (notification) => {
     setNotifications((prevNotifications) =>
       prevNotifications.map((n) =>
-        n._id === notificationId ? { ...n, read: true } : n
+        n._id === notification._id ? { ...n, seen: true } : n
       )
     );
     setUnreadCount((prevCount) => prevCount - 1);
 
     // Enviar mensaje al servidor para marcar como leída
     if (ws) {
-      ws.send(JSON.stringify({ action: 'mark_as_read', notificationId }));
+        try {
+      ws.send(JSON.stringify({ action: 'mark_as_read', notificationId: notification._id }));
+        } catch (error) {
+            console.error('Error al enviar el mensaje por webSocket:', error)
+        }
+    }else {
+        console.error('WebSocket no esta conectado')
     }
   };
 
