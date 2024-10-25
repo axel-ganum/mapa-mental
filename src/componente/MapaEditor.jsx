@@ -127,7 +127,17 @@ const MapaEditor = () => {
      toast.success('Mapa actualizado exitosamente');
      setShoeModal(false);
      setLoading(false)
-   }else if(response.action === 'getMap' && response.map){
+   } else if (response.action === 'mapUpdated') {
+    console.log('Mapa actualizado en tiempo real:', response.map);
+
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: response.map._id } }));
+  } else {
+      console.error('El WebSocket no está abierto o no es válido');
+  }
+
+   
+  } else if(response.action === 'getMap' && response.map){
      console.log('Respuesta con el mapa mental:', response);
      
    setMapId(response.map._id);
