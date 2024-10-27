@@ -130,6 +130,8 @@ const MapaEditor = () => {
    } else if (response.action === 'mapUpdated') {
     console.log('Mapa actualizado en tiempo real:', response.map);
 
+        toast.info('El mapa ha sido actualizado por otro usuario');
+   
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: response.map._id } }));
   } else {
@@ -154,7 +156,19 @@ const MapaEditor = () => {
    setNodes((prevNodes) => prevNodes.filter((node) => node.id !== response.nodeId));
    toast.success('Nodo eliminado exitosamente')
    
- } else if (response.type == 'error') {
+ } else if (response.action === 'nodeDeleted') {
+  // Mensaje específico para otros usuarios que reciben la notificación de eliminación
+  console.log('Nodo eliminado por otro usuario:', response);
+  if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+    ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: response.map._id } }));
+} else {
+    console.error('El WebSocket no está abierto o no es válido');
+}
+ 
+ 
+   toast.info('Un usuario ha eliminado un nodo del mapa.');
+ 
+}else if (response.type == 'error') {
    console.error('Error del WebSocket:', response.message);
 
    toast.error('Error del webSocket:'+ response.message);
@@ -174,7 +188,7 @@ const MapaEditor = () => {
           <NodeContent
           text={node.content || ''}
           onChange={(value) => handleNodeChange(value, node.id)}
-          onRemoveNode={() => removeNode(node.id)}
+          onRemoveNode={() => removeNode(node.id,queryMapid)}
            />
         ),
       },
@@ -322,7 +336,7 @@ const restoreEdges = (savedEdges) => {
               <NodeContent  
               text={ newValue}
               onChange={(value) => handleNodeChange(value, nodeId)}
-              onRemoveNode={() => removeNode(nodeId)}
+              onRemoveNode={() => removeNode(nodeId, queryMapid)}
               />
             ),
           },
@@ -342,7 +356,7 @@ const restoreEdges = (savedEdges) => {
           <NodeContent
             text={`Nuevo Nodo ${nodeIdCounter}`}
             onChange={(value) => handleNodeChange(value, newNodeId)}
-            onRemoveNode={() => removeNode(newNodeId)}
+            onRemoveNode={() => removeNode(newNodeId, queryMapid)}
           />
         ),
       },
@@ -356,16 +370,19 @@ const restoreEdges = (savedEdges) => {
 
  
   // Función para eliminar un nodo
-  const removeNode = (nodeId) => {
+  const removeNode = (nodeId, queryMapid) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
 
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-
+      
+      console.log('queryMapid antes de eliminar nodo:', queryMapid);
       const payload = {
         action:'deleteNode',
-         nodeId:nodeId
+         nodeId: nodeId,
+         mapId: queryMapid
       };
+
       ws.current.send(JSON.stringify(payload))
        console.log(`Enviando solicitud del nodo ID: ${nodeId} al backend`)
     }
