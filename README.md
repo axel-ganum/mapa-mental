@@ -101,40 +101,6 @@ mental-map-editor/
 - **`MyCustomNode.js`**: Custom node component definition.
 - **`CompartirMapa.js`**: Sharing functionality for maps.
 
-## Environment Variables
-
-Create a `.env` file in the root directory to configure the following:
 
 ```
-REACT_APP_API_URL=<Your API URL>
-REACT_APP_WEBSOCKET_URL=<Your WebSocket URL>
-```
-
-## Contributing
-
-1. Fork the repository.
-2. Create a feature branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Commit your changes:
-   ```bash
-   git commit -m "Add feature description"
-   ```
-4. Push the branch:
-   ```bash
-   git push origin feature-name
-   ```
-5. Open a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-## Acknowledgments
-
-- [React Flow Renderer](https://reactflow.dev/)
-- [TailwindCSS](https://tailwindcss.com/)
-- [html2canvas](https://html2canvas.hertzen.com/)
-- [React Toastify](https://fkhadra.github.io/react-toastify/)
 
