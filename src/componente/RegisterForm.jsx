@@ -15,7 +15,7 @@ const RegisterForm = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/auth/register', {
+            const response = await fetch('https://api-mapa-mental.onrender.com/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',  
@@ -45,7 +45,7 @@ const RegisterForm = () => {
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        className='w-full px-4 pu-2 border rounded-lg focus:outline-none focus:border-blue-500 '
+        className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 '
         required
          
         />

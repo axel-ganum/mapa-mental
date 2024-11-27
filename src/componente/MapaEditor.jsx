@@ -24,7 +24,7 @@ import CompartirMapa from './CompartirMapa';
 const nodeType = {
   custom: MyCustomNode
 }
-// Componente principal del mapa mental
+
 const MapaEditor = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useNodesState('')
@@ -70,9 +70,9 @@ const MapaEditor = () => {
       ws.current.close()
     }
 
-    ws.current = new WebSocket(`ws://localhost:3000?token=${token}`);
-  
-    // Evento cuando el WebSocket se conecta
+    ws.current = new WebSocket(`wss://api-mapa-mental.onrender.com?token=${token}`);
+
+
     ws.current.onopen = async () => {
       console.log('WebSocket conectado');
       clearInterval(reconectInter.current);
@@ -84,7 +84,7 @@ const MapaEditor = () => {
       } 
     };
   
-    // Evento cuando llega un mensaje del WebSocket
+  
     ws.current.onmessage = async (event) => {
       const response = JSON.parse(event.data);
       console.log('Mensaje recibido:', response);
@@ -92,7 +92,7 @@ const MapaEditor = () => {
       await handleSuccessResponse(response)
     };
   
-    // Evento cuando ocurre un error en el WebSocket
+
     ws.current.onerror = (error) => {
       console.error('Error del WebSocket', error.message);
 
@@ -101,7 +101,7 @@ const MapaEditor = () => {
       }
     };
   
-    // Evento cuando el WebSocket se cierra
+ 
     ws.current.onclose = (event) => {
       console.log('WebSocket desconectado, reintentando conexión...', event.reason);
       if(!reconectInter.current) {
@@ -157,7 +157,6 @@ const MapaEditor = () => {
    toast.success('Nodo eliminado exitosamente')
    
  } else if (response.action === 'nodeDeleted') {
-  // Mensaje específico para otros usuarios que reciben la notificación de eliminación
   console.log('Nodo eliminado por otro usuario:', response);
   if (ws.current && ws.current.readyState === WebSocket.OPEN) {
     ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: response.map._id } }));
@@ -345,7 +344,7 @@ const restoreEdges = (savedEdges) => {
     )
   );
   }
-  // Función para agregar un nuevo nodo
+ 
   const addNode = (position = { x: 0, y: 0 }) => {
     const newNodeId = `${nodeIdCounter}`;
     const newNode = {
@@ -354,7 +353,6 @@ const restoreEdges = (savedEdges) => {
       data: {
         label: (
           <NodeContent
-            text={`Nuevo Nodo ${nodeIdCounter}`}
             onChange={(value) => handleNodeChange(value, newNodeId)}
             onRemoveNode={() => removeNode(newNodeId, queryMapid)}
           />
@@ -369,7 +367,7 @@ const restoreEdges = (savedEdges) => {
   };
 
  
-  // Función para eliminar un nodo
+
   const removeNode = (nodeId, queryMapid) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
@@ -389,11 +387,11 @@ const restoreEdges = (savedEdges) => {
    
   };
 
-  // Función para manejar nuevas conexiones
+
   const onConnect = (params) =>
     setEdges((eds) => addEdge({ ...params, style: { stroke: '#000', strokeWidth: 2} }, eds));
 
-  // Función para eliminar nodos y bordes
+
   const onElementsRemove = (elementsToRemove) => {
     const nodesToRemove = elementsToRemove.filter((el) => el.id && el.type);
     const edgesToRemove = elementsToRemove.filter((el) => el.id && el.source && el.target);
@@ -404,7 +402,7 @@ const restoreEdges = (savedEdges) => {
     
   };
 
-  // Función para manejar doble clic en un nodo
+
   const onNodeDoubleClick = (event, node) => {
     addNode({ x: node.position.x + 200, y: node.position.y });
   };
@@ -416,7 +414,7 @@ const restoreEdges = (savedEdges) => {
   }
  
   const handlesShareButton = () =>{
-    //navigate(`/compartir/${mapId}`)
+
     setShowShare(true)
   }
 
@@ -429,7 +427,7 @@ const restoreEdges = (savedEdges) => {
        </div>
       ):
       showModal && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-filter flex items-center justify-center">
         <div className="bg-white p-4 rounded shadow-md">
           <h2 className="text-xl font-bold mb-4">Crear nuevo mapa mental</h2>
           <input
@@ -457,31 +455,42 @@ const restoreEdges = (savedEdges) => {
     )}
     {!showModal && (
       <>
-        <div className="p-4 bg-white shadow-md flex justify-between items-center space-x-4 ">
-          <div>
-            <button
-              onClick={saveMap}
-              className={`p-2 m-2 text-white rounded shadow ${ isSaving? 'bg-gray-400 opacity-50 cursor-not-allowed': 'bg-green-500' }`}
-              disabled={isSaving}
-            >
-            {isSaving ? 'Guardardando...' : 'Guardar' }
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-        <button
-          onClick={() => addNode({ x: Math.random() * 500, y: Math.random() * 300 })}
-          className="p-2 m-2 text-white bg-blue-500 rounded shadow self-start"
-        >
-          Agregar Nodo
-        </button>
-          <button
-           onClick={handlesShareButton}
-           className="p-2 m-2 text-white bg-blue-500 rounded shadow self-start"
-          >
-            Compartir Mapa
-          </button>
-        </div>
+    <>
+    <div className="flex items-center justify-between px-6 py-3 bg-gray-50 shadow-lg rounded-lg fixed top-16 left-0 w-full z-40 border border-gray-200">
+  <button
+    onClick={saveMap}
+    className={`flex items-center gap-2 px-4 py-2 font-medium text-white rounded-md shadow-sm transition-all duration-200 ${
+      isSaving ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+    }`}
+    disabled={isSaving}
+    aria-label="Guardar mapa"
+  >
+    
+    <span>{isSaving ? 'Guardando...' : 'Guardar'}</span>
+  </button>
+
+  <button
+    onClick={() => addNode({ x: Math.random() * 500, y: Math.random() * 300 })}
+    className="flex items-center gap-2 px-4 py-2 font-medium text-white bg-blue-600 rounded-md shadow-sm transition-all duration-200 hover:bg-blue-700 focus:outline-none"
+    aria-label="Agregar nodo"
+  >
+    
+    <span>Agregar Nodo</span>
+  </button>
+
+  <button
+    onClick={handlesShareButton}
+    className="flex items-center gap-2 px-4 py-2 font-medium text-white bg-purple-600 rounded-md shadow-sm transition-all duration-200 hover:bg-purple-700 focus:outline-none"
+    aria-label="Compartir mapa"
+  >
+  
+    <span>Compartir Mapa</span>
+  </button>
+</div>
+
+
+</>
+
         { showShare && <CompartirMapa ws={ws.current} mapId={mapId}/>}
         <ToastContainer/>
         <div className="flex-grow overflow-hidden">
@@ -501,7 +510,7 @@ const restoreEdges = (savedEdges) => {
             nodeTypes={nodeType}
             style={{ width: '100%', height: '100%' }}
           >
-            <Controls className="absolute top-1 left-0" />
+            <Controls className="absolute  left-0" style={{ background: '#f3f3f3', padding: '5px', borderRadius: '4px' }} />
             <Background />
           </ReactFlow>
           </div>

@@ -7,6 +7,7 @@ const CompartirMapa = ({ws ,mapId}) => {
   const [emailToShare, setEmailToShare] = useState('');
   const emailInputRef = useRef(null);
 
+
   const {shareMapWithEmail} = userShareMap(ws, mapId);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ const CompartirMapa = ({ws ,mapId}) => {
          Compartir
         </button>
          <button 
-           onClick={() => window.history.back()}
+           onClick={() => window.history.back() }
            className="p-2 text-white bg-red-500 rounded shadow"
          >
             Cancelar

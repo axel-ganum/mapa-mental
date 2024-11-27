@@ -15,11 +15,12 @@ export const WebSocketProvider = ({children }) => {
             if (token) {
                 console.log('Conectando WebSocket con el token:', token);
 
-                webSocket = new WebSocket(`ws://localhost:3000/ws?token=${token}`);
+                webSocket = new WebSocket(`wss://api-mapa-mental.onrender.com?token=${token}`);
+            
                 
                 webSocket.onopen = () => {
                     console.log('Conexión WebSocket establecida');
-                    setWs(webSocket); // Guardar el WebSocket en el estado
+                    setWs(webSocket); 
                 };
 
                 webSocket.onerror = (error) => {
@@ -35,9 +36,9 @@ export const WebSocketProvider = ({children }) => {
                     if (data.action === 'notification') {
                         console.log('Notificación recibida:', data.message);
                         const newNotification = {
-                            _id: data._id, // ID único para cada notificación
-                            message: data.message,
-                            seen: false // Estado inicial de no leída
+                            _id: data._id, 
+                            seen: false,
+                            message: data.message 
                         };
                         setNotifications((prevNotifications) => {
                             if (prevNotifications.find(n => n._id === newNotification._id)) {
@@ -60,7 +61,7 @@ export const WebSocketProvider = ({children }) => {
         return () => {
             if (webSocket) {
                 console.log('Cerrando WebSocket al desmontar componente');
-                webSocket.close(); // Cerrar el WebSocket al desmontar el componente
+                webSocket.close(); 
             }
         };
     }, []); 
@@ -73,7 +74,7 @@ export const WebSocketProvider = ({children }) => {
     );
     setUnreadCount((prevCount) => prevCount - 1);
 
-    // Enviar mensaje al servidor para marcar como leída
+   
     if (ws) {
         try {
       ws.send(JSON.stringify({ action: 'mark_as_read', notificationId: notification._id }));

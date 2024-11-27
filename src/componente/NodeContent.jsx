@@ -24,6 +24,7 @@ const NodeContent = ({ text, onChange, onRemoveNode }) => {
   return (
     <div className="relative p-4 bg-white border border-gray-300 rounded-lg shadow-md">
       <textarea
+        placeholder='Escribe aquí'
         ref={textareaRef}
         className="w-full p-2 border-none resize-none focus:outline-none overflow-hidden"
         defaultValue={text}

@@ -25,7 +25,7 @@ const NavBar = () => {
 
 
   return (
-    <div className="bg-black p-4">
+    <div className="bg-black fixed top-0 left-0 w-full z-50 p-4 ">
       <nav className="container mx-auto flex items-center justify-between">
         <div className="text-white text-lg font-bold">Mi Mapa Mental</div>
         <div className="block lg:hidden">

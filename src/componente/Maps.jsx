@@ -14,7 +14,7 @@ useEffect(() => {
   const fetchMapas = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/maps/all',{
+      const response = await fetch('https://api-mapa-mental.onrender.com/maps/all',{
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`, 
@@ -50,7 +50,7 @@ const handleViewMore = (mapa_id) => {
 
   try {
      const token = localStorage.getItem('token');
-     const response = await fetch(`http://localhost:3000/maps/${mapa_id}`, {
+     const response = await fetch(`https://api-mapa-mental.onrender.com/maps/${mapa_id}`, {
       method:'DELETE',
       headers: {
           'Authorization': `Bearer ${token}`,
@@ -74,7 +74,7 @@ const handleViewMore = (mapa_id) => {
  console.log(mapas)
 
  return (
-  <div className="container mx-auto p-6">
+  <div className="container mx-auto p-4 sm:p-6 mt-16">
     <ToastContainer />
     <h2 className="text-2xl font-semibold mb-4">Todos los Mapas</h2>
     {loading ? (
@@ -108,8 +108,13 @@ const handleViewMore = (mapa_id) => {
                   </div>
                 )}
                 <div
-                  className="relative w-full"
-                  style={{ height: `${imageHeight}px`, paddingBottom: `${100 / aspectRatio}%`, overflow: 'hidden' }}
+                  className="relative w-full  p-2 bg-gray-100 border border-gray-400 rounded-l"
+                  style={{
+                    height: `${imageHeight}px`,
+                    paddingBottom: `${100 / aspectRatio}%`,
+                    overflow: "hidden",
+                    boxShadow: "0 0 5px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 0, 0, 0.2)", // sombra doble
+                  }}
                 >
                   {mapa.thumbnail ? (
                     <img

@@ -28,7 +28,14 @@ const MyCustomNode = ({ data, onAddNode }) => {
     setHovered(false); // Asegura que el mensaje se oculte al agregar un nodo
     onAddNode();
   };
+ 
+  const clusterStyles = {
+    grupoA: { backgroundColor: '#E1F5FE', borderColor: '#00A1E4' },
+    grupoB: { backgroundColor: '#FFEBEE', borderColor: '#D32F2F' },
+  };
 
+  // Aplica el estilo correspondiente al grupo del nodo
+  const groupStyle = clusterStyles[data.group] || { backgroundColor: '#f0f4f8', borderColor: '#e0e4e8' };
   return (
     <>
       <div
@@ -39,12 +46,24 @@ const MyCustomNode = ({ data, onAddNode }) => {
       >
         <div
           style={{
-            padding: '10px',
-            borderRadius: '12px',
-            backgroundColor: '#fff',
-            boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+            ...groupStyle,
+            padding: '6px 15px',
+            borderRadius: '10px',
+            backgroundColor: '#f0f4f8',
+            boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)',
             cursor: 'pointer',
+            border: '1px solid #e0e4e8',
             position: 'relative',
+            transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '12px', // Tamaño de fuente más pequeño
+            color: '#333',
+            maxWidth: '180px', // Ancho aumentado del nodo
+            textAlign: 'center',
+            height: '25px', // Reduce la altura
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -63,10 +82,12 @@ const MyCustomNode = ({ data, onAddNode }) => {
             top: '-50px',
             left: '50%',
             transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            padding: '8px',
-            borderRadius: '4px',
-            boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+            color: '#333',
+            fontSize: '12px',
             zIndex: 10,
           }}
         >
