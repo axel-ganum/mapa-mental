@@ -187,7 +187,7 @@ const MapaEditor = () => {
   }, [undo, redo]);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-50 overflow-hidden pt-20">
       {loading ? (
         <div className="flex items-center justify-center h-full">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -220,7 +220,7 @@ const MapaEditor = () => {
         </div>
       )}
 
-      <Panel position="top-center" className="z-40 mt-4">
+      <Panel position="top-center" className="z-[60] mt-4">
         <div className="glass-panel px-4 py-2 rounded-2xl flex items-center gap-3">
           <button onClick={saveMap} disabled={isSaving} className={`premium-button ${isSaving ? 'bg-slate-200' : 'premium-button-green'}`}>
             {isSaving ? 'Guardando...' : 'Guardar'}
