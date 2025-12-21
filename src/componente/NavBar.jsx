@@ -5,7 +5,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useWebSocket } from "./context/useWebSocket";
 
 const NavBar = () => {
-  const{ unreadCount, resetUnreadCount} = useWebSocket();
+  const { unreadCount, resetUnreadCount } = useWebSocket();
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -27,7 +27,12 @@ const NavBar = () => {
   return (
     <div className="bg-black fixed top-0 left-0 w-full z-50 p-4 ">
       <nav className="container mx-auto flex items-center justify-between">
-        <div className="text-white text-lg font-bold">Mi Mapa Mental</div>
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 bg-white/10 p-1.5 rounded-xl backdrop-blur-md border border-white/20 group-hover:scale-110 transition-transform">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+          </div>
+          <div className="text-white text-xl font-bold tracking-tight">MindMe</div>
+        </Link>
         <div className="block lg:hidden">
           <button
             onClick={toggleMenu}
