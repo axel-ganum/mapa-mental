@@ -1,100 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { Handle, Position } from 'react-flow-renderer';
+import { Handle, Position } from 'reactflow';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const MyCustomNode = ({ data, onAddNode }) => {
+const MyCustomNode = ({ data }) => {
   const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     let timeoutRef;
-
     if (hovered) {
       timeoutRef = setTimeout(() => {
         setHovered(false);
-      }, 2000);
+      }, 3000);
     }
-
     return () => clearTimeout(timeoutRef);
   }, [hovered]);
 
-  const handleMouseEnter = () => {
-    setHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    setHovered(false);
-  };
-
-  const handleDoubleClick = () => {
-    setHovered(false); // Asegura que el mensaje se oculte al agregar un nodo
-    onAddNode();
-  };
- 
-  const clusterStyles = {
-    grupoA: { backgroundColor: '#E1F5FE', borderColor: '#00A1E4' },
-    grupoB: { backgroundColor: '#FFEBEE', borderColor: '#D32F2F' },
-  };
-
-  // Aplica el estilo correspondiente al grupo del nodo
-  const groupStyle = clusterStyles[data.group] || { backgroundColor: '#f0f4f8', borderColor: '#e0e4e8' };
   return (
-    <>
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        <div
-          style={{
-            ...groupStyle,
-            padding: '6px 15px',
-            borderRadius: '10px',
-            backgroundColor: '#f0f4f8',
-            boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)',
-            cursor: 'pointer',
-            border: '1px solid #e0e4e8',
-            position: 'relative',
-            transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '12px', // Tamaño de fuente más pequeño
-            color: '#333',
-            maxWidth: '180px', // Ancho aumentado del nodo
-            textAlign: 'center',
-            height: '25px', // Reduce la altura
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onDoubleClick={handleDoubleClick}
-        >
-          {data.label}
-          <Handle type="target" position={Position.Left} style={{ background: '#555' }} />
-          <Handle type="source" position={Position.Right} style={{ background: '#555' }} />
-        </div>
+    <div
+      className="relative group"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div className="relative z-10">
+        {data.label}
+
+        {/* Handles with better visibility */}
+        <Handle
+          type="target"
+          position={Position.Left}
+          className="!bg-slate-400 !w-3 !h-3 !border-2 !border-white hover:!bg-blue-500 transition-colors"
+        />
+        <Handle
+          type="source"
+          position={Position.Right}
+          className="!bg-slate-400 !w-3 !h-3 !border-2 !border-white hover:!bg-blue-500 transition-colors"
+        />
+        <Handle
+          type="source"
+          position={Position.Top}
+          className="!bg-slate-400 !w-3 !h-3 !border-2 !border-white hover:!bg-blue-500 transition-colors"
+        />
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          className="!bg-slate-400 !w-3 !h-3 !border-2 !border-white hover:!bg-blue-500 transition-colors"
+        />
       </div>
 
-      {hovered && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '-50px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
-            color: '#333',
-            fontSize: '12px',
-            zIndex: 10,
-          }}
-        >
-          Doble clic para agregar un nodo
-        </div>
-      )}
-    </>
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-800 text-white text-[10px] px-2 py-1 rounded shadow-xl pointer-events-none z-20"
+          >
+            Doble clic en un nodo para agregar uno nuevo conectado
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Connection Indicator Ring */}
+      <div className="absolute inset-0 -m-1 border-2 border-blue-400/0 group-hover:border-blue-400/30 rounded-2xl transition-all duration-300 pointer-events-none" />
+    </div>
   );
 };
 
