@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fresh build trigger - 2025-12-21 */
+
 @layer base {
   :root {
     --primary: #3b82f6;
