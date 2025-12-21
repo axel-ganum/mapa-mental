@@ -220,25 +220,6 @@ const MapaEditor = () => {
         </div>
       )}
 
-      <Panel position="top-center" className="z-[60] mt-4">
-        <div className="glass-panel px-4 py-2 rounded-2xl flex items-center gap-3">
-          <button onClick={saveMap} disabled={isSaving} className={`premium-button ${isSaving ? 'bg-slate-200' : 'premium-button-green'}`}>
-            {isSaving ? 'Guardando...' : 'Guardar'}
-          </button>
-          <div className="w-px h-6 bg-slate-200 mx-1" />
-          <button onClick={handleAddNode} className="premium-button premium-button-blue">
-            + Nuevo Nodo
-          </button>
-          <button onClick={autoLayout} className="premium-button premium-button-purple">
-            Reorganizar
-          </button>
-          <div className="w-px h-6 bg-slate-200 mx-1" />
-          <button onClick={() => setShowShare(true)} className="px-4 py-2 hover:bg-slate-100 rounded-xl transition-colors font-medium text-slate-600">
-            Compartir
-          </button>
-        </div>
-      </Panel>
-
       {showShare && <CompartirMapa ws={ws.current} mapId={mapId} onClose={() => setShowShare(false)} />}
 
       <ToastContainer position="bottom-right" theme="light" />
@@ -255,6 +236,24 @@ const MapaEditor = () => {
           snapToGrid
           snapGrid={[15, 15]}
         >
+          <Panel position="top-center" className="z-[60]">
+            <div className="glass-panel px-4 py-2 rounded-2xl flex items-center gap-3 shadow-2xl">
+              <button onClick={saveMap} disabled={isSaving} className={`premium-button ${isSaving ? 'bg-slate-200' : 'premium-button-green'}`}>
+                {isSaving ? 'Guardando...' : 'Guardar'}
+              </button>
+              <div className="w-px h-6 bg-slate-200 mx-1" />
+              <button onClick={handleAddNode} className="premium-button premium-button-blue">
+                + Nuevo Nodo
+              </button>
+              <button onClick={autoLayout} className="premium-button premium-button-purple">
+                Reorganizar
+              </button>
+              <div className="w-px h-6 bg-slate-200 mx-1" />
+              <button onClick={() => setShowShare(true)} className="px-4 py-2 hover:bg-slate-100 rounded-xl transition-colors font-medium text-slate-600">
+                Compartir
+              </button>
+            </div>
+          </Panel>
           <Controls position="bottom-left" />
           <Background color="#cbd5e1" gap={20} />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
