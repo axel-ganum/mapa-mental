@@ -74,13 +74,7 @@ const MapaEditor = () => {
           type: 'custom',
           data: {
             ...node.data,
-            label: (
-              <NodeContent
-                text={node.content || ''}
-                onChange={(val) => updateNodeData(node.id, { label: <NodeContent text={val} onChange={(v) => updateNodeData(node.id, { label: <NodeContent text={v} onChange={null} onRemoveNode={() => removeNode(node.id)} /> })} onRemoveNode={() => removeNode(node.id)} /> })}
-                onRemoveNode={() => removeNode(node.id)}
-              />
-            ),
+            content: node.content || '', // Use raw content
           }
         }));
 
@@ -90,7 +84,7 @@ const MapaEditor = () => {
         setShowModal(false);
       }
     }
-  }, [mapId, setNodes, setEdges, updateNodeData, removeNode]);
+  }, [mapId, setNodes, setEdges]);
 
   const connectWebSocket = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -142,18 +136,10 @@ const MapaEditor = () => {
       id,
       type: 'custom',
       position: { x: Math.random() * 400, y: Math.random() * 300 },
-      data: {
-        label: (
-          <NodeContent
-            text=""
-            onChange={(val) => updateNodeData(id, { label: <NodeContent text={val} onChange={(v) => updateNodeData(id, { label: <NodeContent text={v} onChange={null} onRemoveNode={() => removeNode(id)} /> })} onRemoveNode={() => removeNode(id)} /> })}
-            onRemoveNode={() => removeNode(id)}
-          />
-        ),
-      },
+      data: { content: '' },
     };
     addNode(newNode);
-  }, [addNode, updateNodeData, removeNode]);
+  }, [addNode]);
 
   const saveMap = async () => {
     if (!ws.current || ws.current.readyState !== WebSocket.OPEN) return;
@@ -166,7 +152,11 @@ const MapaEditor = () => {
         id: mapId,
         title,
         description,
-        nodes: nodes.map(n => ({ ...n, content: n.data.label.props.text })),
+        nodes: nodes.map(n => ({
+          ...n,
+          content: n.data.content || '', // Use content from data
+          data: { ...n.data } // Keep data simple
+        })),
         edges,
         thumbnail: image
       };

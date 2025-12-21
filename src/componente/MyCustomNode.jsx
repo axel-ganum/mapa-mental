@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
 import { motion, AnimatePresence } from 'framer-motion';
+import useMapStore from '../hooks/useMapStore';
+import NodeContent from './NodeContent';
 
-const MyCustomNode = ({ data }) => {
+const MyCustomNode = ({ id, data }) => {
   const [hovered, setHovered] = useState(false);
+  const updateNodeData = useMapStore((state) => state.updateNodeData);
+  const removeNode = useMapStore((state) => state.removeNode);
 
   useEffect(() => {
     let timeoutRef;
@@ -15,6 +19,10 @@ const MyCustomNode = ({ data }) => {
     return () => clearTimeout(timeoutRef);
   }, [hovered]);
 
+  const handleTextChange = (val) => {
+    updateNodeData(id, { content: val });
+  };
+
   return (
     <div
       className="relative group"
@@ -22,9 +30,12 @@ const MyCustomNode = ({ data }) => {
       onMouseLeave={() => setHovered(false)}
     >
       <div className="relative z-10">
-        {data.label}
+        <NodeContent
+          text={data.content || ''}
+          onChange={handleTextChange}
+          onRemoveNode={() => removeNode(id)}
+        />
 
-        {/* Handles with better visibility */}
         <Handle
           type="target"
           position={Position.Left}
@@ -60,19 +71,9 @@ const MyCustomNode = ({ data }) => {
         )}
       </AnimatePresence>
 
-      {/* Connection Indicator Ring */}
       <div className="absolute inset-0 -m-1 border-2 border-blue-400/0 group-hover:border-blue-400/30 rounded-2xl transition-all duration-300 pointer-events-none" />
     </div>
   );
 };
 
 export default MyCustomNode;
-
-
-
-
-
-
-
-
-
