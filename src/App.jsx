@@ -17,23 +17,23 @@ const App = () => {
   return (
     <Router>
 
-      <div>
-        <WebSocketProvider>
+      <WebSocketProvider>
+        <div>
           <NavBar />
-        </WebSocketProvider>
-        <ReactFlowProvider>
-          <Routes>
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="/register" element={<RegisterForm />} />
-            <Route path="/" element={<Home />} />
-            <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-            <Route path="/editor" element={<ProtectedRoute element={<MapaEditor />} />} />
-            <Route path="/maps" element={<ProtectedRoute element={<Maps />} />} />
-            <Route path='/logout' element={<Logout />} />
-            <Route path='/compartir/:mapId' element={<CompartirMapa />} />
-          </Routes>
-        </ReactFlowProvider>
-      </div>
+          <ReactFlowProvider>
+            <Routes>
+              <Route path="/login" element={<LoginForm />} />
+              <Route path="/register" element={<RegisterForm />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+              <Route path="/editor" element={<ProtectedRoute element={<MapaEditor />} />} />
+              <Route path="/maps" element={<ProtectedRoute element={<Maps />} />} />
+              <Route path='/logout' element={<Logout />} />
+              <Route path='/compartir/:mapId' element={<CompartirMapa />} />
+            </Routes>
+          </ReactFlowProvider>
+        </div>
+      </WebSocketProvider>
 
 
     </Router>

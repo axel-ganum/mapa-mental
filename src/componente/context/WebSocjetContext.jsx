@@ -1,53 +1,60 @@
-import React, { createContext, useState, useEffect } from 'react'; 
+import React, { createContext, useState, useEffect } from 'react';
 
 const WebSocketContext = createContext(null);
 
-export const WebSocketProvider = ({children }) => {
+export const WebSocketProvider = ({ children }) => {
     const [ws, setWs] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0)
 
     useEffect(() => {
         let webSocket;
+        let reconnectTimeout;
 
         const setUpWebSocket = () => {
             const token = localStorage.getItem('token');
             if (token) {
-                console.log('Conectando WebSocket con el token:', token);
+                console.log('Conectando WebSocket Global...');
 
                 webSocket = new WebSocket(`wss://api-mapa-mental.onrender.com?token=${token}`);
-            
-                
+
                 webSocket.onopen = () => {
-                    console.log('Conexión WebSocket establecida');
-                    setWs(webSocket); 
+                    console.log('Conexión WebSocket Global establecida');
+                    setWs(webSocket);
+                    if (reconnectTimeout) {
+                        clearTimeout(reconnectTimeout);
+                        reconnectTimeout = null;
+                    }
                 };
 
                 webSocket.onerror = (error) => {
-                    console.error('Error en el WebSocket:', error);
+                    console.error('Error en el WebSocket Global:', error);
                 };
 
                 webSocket.onclose = () => {
-                    console.log('Conexión WebSocket cerrada, reintentando en 5 segundos...');
-                    setTimeout(setUpWebSocket, 5000)
+                    console.log('Conexión WebSocket Global cerrada, reintentando en 5 segundos...');
+                    if (!reconnectTimeout) {
+                        reconnectTimeout = setTimeout(() => {
+                            reconnectTimeout = null;
+                            setUpWebSocket();
+                        }, 5000);
+                    }
                 };
                 webSocket.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     if (data.action === 'notification') {
                         console.log('Notificación recibida:', data.message);
                         const newNotification = {
-                            _id: data._id, 
+                            _id: data._id,
                             seen: false,
-                            message: data.message 
+                            message: data.message
                         };
                         setNotifications((prevNotifications) => {
                             if (prevNotifications.find(n => n._id === newNotification._id)) {
-                                 return prevNotifications
-                                
+                                return prevNotifications
                             }
-                        
-                          return [newNotification, ...prevNotifications];
-                    });   
+                            return [newNotification, ...prevNotifications];
+                        });
                         setUnreadCount((prevCount) => prevCount + 1)
                     }
                 };
@@ -60,37 +67,40 @@ export const WebSocketProvider = ({children }) => {
 
         return () => {
             if (webSocket) {
-                console.log('Cerrando WebSocket al desmontar componente');
-                webSocket.close(); 
+                console.log('Cerrando WebSocket Global al desmontar');
+                webSocket.close();
+            }
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
             }
         };
-    }, []); 
+    }, []);
 
-        const markAsRead = (notification) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((n) =>
-        n._id === notification._id ? { ...n, seen: true } : n
-      )
-    );
-    setUnreadCount((prevCount) => prevCount - 1);
+    const markAsRead = (notification) => {
+        setNotifications((prevNotifications) =>
+            prevNotifications.map((n) =>
+                n._id === notification._id ? { ...n, seen: true } : n
+            )
+        );
+        setUnreadCount((prevCount) => prevCount - 1);
 
-   
-    if (ws) {
-        try {
-      ws.send(JSON.stringify({ action: 'mark_as_read', notificationId: notification._id }));
-        } catch (error) {
-            console.error('Error al enviar el mensaje por webSocket:', error)
+
+        if (ws) {
+            try {
+                ws.send(JSON.stringify({ action: 'mark_as_read', notificationId: notification._id }));
+            } catch (error) {
+                console.error('Error al enviar el mensaje por webSocket:', error)
+            }
+        } else {
+            console.error('WebSocket no esta conectado')
         }
-    }else {
-        console.error('WebSocket no esta conectado')
-    }
-  };
+    };
 
-  const resetUnreadCount = () => {
-    setUnreadCount(0);
-  };
+    const resetUnreadCount = () => {
+        setUnreadCount(0);
+    };
     return (
-        <WebSocketContext.Provider value={{ws, notifications, unreadCount, markAsRead, resetUnreadCount}}>
+        <WebSocketContext.Provider value={{ ws, notifications, unreadCount, markAsRead, resetUnreadCount }}>
             {children}
         </WebSocketContext.Provider>
     );

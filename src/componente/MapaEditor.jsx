@@ -120,7 +120,11 @@ const MapaEditor = () => {
     ws.current = new WebSocket(`wss://api-mapa-mental.onrender.com?token=${token}`);
 
     ws.current.onopen = () => {
-      clearInterval(reconectInter.current);
+      console.log('WebSocket Editor: Conectado');
+      if (reconectInter.current) {
+        clearTimeout(reconectInter.current);
+        reconectInter.current = null;
+      }
       if (queryMapid) {
         ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
       }
@@ -130,9 +134,17 @@ const MapaEditor = () => {
       handleSuccessResponse(JSON.parse(event.data));
     };
 
-    ws.current.onclose = () => {
+    ws.current.onerror = (error) => {
+      console.error('WebSocket Editor Error:', error);
+    };
+
+    ws.current.onclose = (event) => {
+      console.log('WebSocket Editor: Cerrado', event.reason);
       if (!reconectInter.current) {
-        reconectInter.current = setTimeout(connectWebSocket, 5000);
+        reconectInter.current = setTimeout(() => {
+          reconectInter.current = null;
+          connectWebSocket();
+        }, 5000);
       }
     };
   }, [queryMapid, handleSuccessResponse]);
