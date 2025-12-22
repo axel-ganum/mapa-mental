@@ -273,9 +273,13 @@ const MapaEditor = () => {
             />
             <button
               onClick={() => title && description && setShowModal(false)}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all transform active:scale-95"
+              disabled={!title || !description}
+              className={`w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 ${!title || !description ? 'bg-slate-300 cursor-not-allowed shadow-none' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'}`}
             >
-              Comenzar
+              <span>Comenzar</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
             </button>
           </div>
         </div>
@@ -302,19 +306,19 @@ const MapaEditor = () => {
               <button
                 onClick={saveMap}
                 disabled={isSaving}
-                className={`premium-button flex items-center gap-2 ${isSaving ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'premium-button-green'}`}
+                className={`premium-button flex items-center gap-2 min-w-[120px] justify-center ${isSaving ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'premium-button-green'}`}
               >
                 {isSaving ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-                    <span>Guardando...</span>
+                    <div className="w-4 h-4 border-2 border-slate-300 border-t-emerald-600 rounded-full animate-spin" />
+                    <span>{mapId ? 'Guardando...' : 'Creando...'}</span>
                   </>
                 ) : (
                   <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>
-                    <span>Guardar</span>
+                    <span>{mapId ? 'Guardar' : 'Crear Mapa'}</span>
                   </>
                 )}
               </button>
