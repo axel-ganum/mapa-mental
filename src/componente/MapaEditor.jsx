@@ -54,6 +54,13 @@ const MapaEditor = () => {
 
   // WebSocket handlers
   const handleSuccessResponse = useCallback(async (response) => {
+    if (response.type === 'error') {
+      toast.error(`Error: ${response.message || 'Error desconocido'}`);
+      setIsSaving(false);
+      setLoading(false);
+      return;
+    }
+
     if (response.type === 'success') {
       if (response.action === 'saveMap' || response.action === 'updateMap') {
         setMapId(response.map?._id || mapId);
@@ -142,20 +149,39 @@ const MapaEditor = () => {
   }, [addNode]);
 
   const saveMap = async () => {
-    if (!ws.current || ws.current.readyState !== WebSocket.OPEN) return;
+    if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
+      toast.error('No hay conexión con el servidor. Reintentando...');
+      connectWebSocket();
+      return;
+    }
+
     setIsSaving(true);
+    const toastId = toast.loading('Generando imagen del mapa...');
+
     try {
-      const canvas = await html2canvas(reactFlowWrapper.current, { useCORS: true, scale: 2 });
+      if (!reactFlowWrapper.current) throw new Error('Contenedor del mapa no encontrado');
+
+      const canvas = await html2canvas(reactFlowWrapper.current, {
+        useCORS: true,
+        scale: 2,
+        logging: false,
+        backgroundColor: '#f8fafc'
+      });
+
       const image = canvas.toDataURL('image/png');
+
+      toast.update(toastId, { render: 'Enviando al servidor...', type: 'info', isLoading: true });
 
       const payload = {
         id: mapId,
         title,
         description,
         nodes: nodes.map(n => ({
-          ...n,
-          content: n.data.content || '', // Use content from data
-          data: { ...n.data } // Keep data simple
+          id: n.id,
+          type: n.type,
+          position: n.position,
+          content: n.data?.content || '',
+          data: { content: n.data?.content || '' }
         })),
         edges,
         thumbnail: image
@@ -165,8 +191,25 @@ const MapaEditor = () => {
         action: mapId ? 'updateMap' : 'saveMap',
         payload
       }));
+
+      // The actual success/error toast will be triggered by handleSuccessResponse
+      // but we'll dismiss this one after a timeout if no response comes
+      setTimeout(() => {
+        toast.dismiss(toastId);
+        if (isSaving) {
+          setIsSaving(false);
+          toast.error('Tiempo de espera agotado al guardar');
+        }
+      }, 10000);
+
     } catch (error) {
       console.error('Error saving map:', error);
+      toast.update(toastId, {
+        render: `Error: ${error.message}`,
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000
+      });
       setIsSaving(false);
     }
   };
