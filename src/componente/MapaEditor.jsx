@@ -298,8 +298,11 @@ const MapaEditor = () => {
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           fitView
-          snapToGrid
-          snapGrid={[15, 15]}
+          defaultEdgeOptions={{
+            type: 'bezier',
+            animated: true,
+            style: { stroke: '#94a3b8', strokeWidth: 2.5 },
+          }}
         >
           <Panel position="top-center" className="z-[60]">
             <div className="glass-panel px-4 py-2 rounded-2xl flex items-center gap-3 shadow-2xl">
@@ -336,7 +339,7 @@ const MapaEditor = () => {
             </div>
           </Panel>
           <Controls position="bottom-left" />
-          <Background color="#cbd5e1" gap={20} />
+          <Background color="#cbd5e1" variant="dots" gap={24} size={1} />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
         </ReactFlow>
       </div>
