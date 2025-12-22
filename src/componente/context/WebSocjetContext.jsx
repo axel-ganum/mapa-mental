@@ -13,51 +13,70 @@ export const WebSocketProvider = ({ children }) => {
         let reconnectTimeout;
 
         const setUpWebSocket = () => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                // Basic JWT check
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    if (payload.exp && Date.now() >= payload.exp * 1000) {
-                        console.error('WebSocket Context: Token expirado detectado');
-                        // Optional: trigger logout or warning
-                    }
-                } catch (e) {
-                    console.error('WebSocket Context: Error decodificando token');
+            let token = localStorage.getItem('token');
+
+            // Clean up invalid token strings
+            if (token === 'undefined' || token === 'null' || !token) {
+                console.error('WebSocket Context: No hay un token válido disponible');
+                return;
+            }
+
+            // Basic JWT check and expiration logic
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) throw new Error('Token malformado');
+
+                const payload = JSON.parse(atob(parts[1]));
+                if (payload.exp && Date.now() >= payload.exp * 1000) {
+                    console.error('WebSocket Context: El token ha expirado. Por favor, inicia sesión de nuevo.');
+                    // Don't try to connect with an expired token
+                    return;
                 }
+            } catch (e) {
+                console.error('WebSocket Context: Error validando el token:', e.message);
+                // If it's malformed, we shouldn't keep trying
+                return;
+            }
 
-                console.log('Conectando WebSocket Global...');
+            console.log('Conectando WebSocket Global...');
+            webSocket = new WebSocket(`wss://api-mapa-mental.onrender.com?token=${token}`);
 
-                webSocket = new WebSocket(`wss://api-mapa-mental.onrender.com?token=${token}`);
+            webSocket.onopen = () => {
+                console.log('Conexión WebSocket Global establecida');
+                setWs(webSocket);
+                if (reconnectTimeout) {
+                    clearTimeout(reconnectTimeout);
+                    reconnectTimeout = null;
+                }
+            };
 
-                webSocket.onopen = () => {
-                    console.log('Conexión WebSocket Global establecida');
-                    setWs(webSocket);
-                    if (reconnectTimeout) {
-                        clearTimeout(reconnectTimeout);
-                        reconnectTimeout = null;
-                    }
-                };
+            webSocket.onerror = (error) => {
+                console.error('Error en el WebSocket Global: El servidor rechazó la conexión.');
+            };
 
-                webSocket.onerror = (error) => {
-                    console.error('Error en el WebSocket Global:', error);
-                };
+            webSocket.onclose = (event) => {
+                setWs(null);
+                console.log(`Conexión WebSocket Global cerrada (Código: ${event.code}).`);
 
-                webSocket.onclose = () => {
-                    console.log('Conexión WebSocket Global cerrada, reintentando en 5 segundos...');
+                // Only retry if it wasn't a clean close and we still have a token
+                const currentToken = localStorage.getItem('token');
+                if (currentToken && currentToken !== 'undefined' && event.code !== 1000) {
+                    console.log('Programando reintento en 5 segundos...');
                     if (!reconnectTimeout) {
                         reconnectTimeout = setTimeout(() => {
                             reconnectTimeout = null;
                             setUpWebSocket();
                         }, 5000);
                     }
-                };
-                webSocket.onmessage = (event) => {
+                }
+            };
+
+            webSocket.onmessage = (event) => {
+                try {
                     const data = JSON.parse(event.data);
                     setLastMessage(data);
 
                     if (data.action === 'notification') {
-                        console.log('Notificación recibida:', data.message);
                         const newNotification = {
                             _id: data._id,
                             seen: false,
@@ -65,16 +84,16 @@ export const WebSocketProvider = ({ children }) => {
                         };
                         setNotifications((prevNotifications) => {
                             if (prevNotifications.find(n => n._id === newNotification._id)) {
-                                return prevNotifications
+                                return prevNotifications;
                             }
                             return [newNotification, ...prevNotifications];
                         });
-                        setUnreadCount((prevCount) => prevCount + 1)
+                        setUnreadCount((prevCount) => prevCount + 1);
                     }
-                };
-            } else {
-                console.error('No se pudo establecer la conexión porque no hay un token disponible');
-            }
+                } catch (err) {
+                    console.error('Error procesando mensaje WebSocket:', err);
+                }
+            };
         };
 
         setUpWebSocket();

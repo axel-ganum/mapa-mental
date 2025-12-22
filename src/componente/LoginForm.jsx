@@ -8,22 +8,22 @@ const LoginForm = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://api-mapa-mental.onrender.com/auth/login',{
+      const response = await fetch('https://api-mapa-mental.onrender.com/auth/login', {
         method: 'POST',
         headers: {
-         'Content-Type': 'application/json', 
+          'Content-Type': 'application/json',
         },
-        body:JSON.stringify({email, password}),
+        body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
 
-      if(response.ok) {
+      if (response.ok && data.token) {
         localStorage.setItem('token', data.token);
         window.location.href = '/';
-      }else {
-        setError(data.message);
+      } else {
+        setError(data.message || 'Error al iniciar sesión. Token no recibido.');
       }
-    }catch (error) {
+    } catch (error) {
       setError('Error al iniciar sesión. posr favor, inténtelo de nuevo.')
     }
   };
@@ -32,14 +32,14 @@ const LoginForm = () => {
       <h2 className='text-2xl font-semibold mb-4'>Iniciar Sesión</h2>
       <form onSubmit={handleLogin} className='bg-white p-6 required-lg shadow-lg'>
         <div className='mb-4'>
-          <label className='block text-gray-700'>Correo Electrónico:</label> 
-         <input 
-         type="email"
-         value={email}
-         onChange={(e) => setEmail(e.target.value)}
-         className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500'
-         required
-         />
+          <label className='block text-gray-700'>Correo Electrónico:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className='w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500'
+            required
+          />
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Contraseña:</label>
@@ -54,12 +54,12 @@ const LoginForm = () => {
         {error && <p className='text-red-500 mb-4'>{error}</p>}
         <div className='flex justify-between'>
           <button
-          type='submit'
-          className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600'
-             >
-          Iniciar Sesión
+            type='submit'
+            className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600'
+          >
+            Iniciar Sesión
           </button>
-          </div>
+        </div>
       </form>
     </div>
   )
