@@ -14,6 +14,7 @@ import useMapStore from '../hooks/useMapStore';
 import NodeContent from './NodeContent';
 import MyCustomNode from './MyCustomNode';
 import CompartirMapa from './CompartirMapa';
+import { useWebSocket } from './context/useWebSocket';
 
 const nodeTypes = {
   custom: MyCustomNode,
@@ -44,7 +45,8 @@ const MapaEditor = () => {
   const [mapId, setMapId] = useState(null);
   const [showShare, setShowShare] = useState(false);
 
-  const ws = useRef(null);
+  // Global WebSocket context
+  const { ws, lastMessage } = useWebSocket();
   const reconectInter = useRef(null);
   const reactFlowWrapper = useRef(null);
   const saveToastId = useRef(null);
@@ -116,73 +118,24 @@ const MapaEditor = () => {
     }
   }, [mapId, setNodes, setEdges]);
 
-  // Update the ref whenever the handler changes, but don't trigger reconnects
+  // React to global WebSocket messages
+  useEffect(() => {
+    if (lastMessage && handleSuccessResponseRef.current) {
+      handleSuccessResponseRef.current(lastMessage);
+    }
+  }, [lastMessage]);
+
+  useEffect(() => {
+    if (queryMapid && ws && ws.readyState === WebSocket.OPEN) {
+      console.log('MapaEditor: Solicitando mapa inicial', queryMapid);
+      ws.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
+    }
+  }, [queryMapid, ws]);
+
+  // Update the ref whenever the handler changes
   useEffect(() => {
     handleSuccessResponseRef.current = handleSuccessResponse;
   }, [handleSuccessResponse]);
-
-  const connectWebSocket = useCallback(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('WebSocket Editor: No hay token en localStorage');
-      return;
-    }
-
-    if (ws.current) {
-      console.log('WebSocket Editor: Cerrando conexión previa antes de conectar');
-      ws.current.close();
-    }
-
-    const wsUrl = `wss://api-mapa-mental.onrender.com?token=${token}`;
-    console.log('WebSocket Editor: Intentando conectar a', wsUrl);
-    ws.current = new WebSocket(wsUrl);
-
-    ws.current.onopen = () => {
-      console.log('WebSocket Editor: Conectado exitosamente');
-      if (reconectInter.current) {
-        clearTimeout(reconectInter.current);
-        reconectInter.current = null;
-      }
-      if (queryMapid) {
-        console.log('WebSocket Editor: Solicitando mapa', queryMapid);
-        ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
-      }
-    };
-
-    ws.current.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (handleSuccessResponseRef.current) {
-          handleSuccessResponseRef.current(data);
-        }
-      } catch (err) {
-        console.error('WebSocket Editor: Error parsing message', err);
-      }
-    };
-
-    ws.current.onerror = (error) => {
-      console.error('WebSocket Editor: Error detectado:', error);
-    };
-
-    ws.current.onclose = (event) => {
-      console.log('WebSocket Editor: Conexión cerrada. Código:', event.code, 'Razón:', event.reason);
-      if (!reconectInter.current) {
-        console.log('WebSocket Editor: Programando reconexión en 5s...');
-        reconectInter.current = setTimeout(() => {
-          reconectInter.current = null;
-          connectWebSocket();
-        }, 5000);
-      }
-    };
-  }, [queryMapid]); // Now only depends on queryMapid
-
-  useEffect(() => {
-    connectWebSocket();
-    return () => {
-      if (ws.current) ws.current.close();
-      clearTimeout(reconectInter.current);
-    };
-  }, [connectWebSocket]);
 
   useEffect(() => {
     if (queryMapid) {
@@ -206,9 +159,8 @@ const MapaEditor = () => {
   }, [addNode]);
 
   const saveMap = async () => {
-    if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
-      toast.error('No hay conexión con el servidor. Reintentando...');
-      connectWebSocket();
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      toast.error('No hay conexión con el servidor. Por favor, espera o reinicia sesión.');
       return;
     }
 
@@ -245,7 +197,7 @@ const MapaEditor = () => {
         thumbnail: image
       };
 
-      ws.current.send(JSON.stringify({
+      ws.send(JSON.stringify({
         action: mapId ? 'updateMap' : 'saveMap',
         payload
       }));

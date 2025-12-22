@@ -5,7 +5,8 @@ const WebSocketContext = createContext(null);
 export const WebSocketProvider = ({ children }) => {
     const [ws, setWs] = useState(null);
     const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0)
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [lastMessage, setLastMessage] = useState(null);
 
     useEffect(() => {
         let webSocket;
@@ -14,6 +15,17 @@ export const WebSocketProvider = ({ children }) => {
         const setUpWebSocket = () => {
             const token = localStorage.getItem('token');
             if (token) {
+                // Basic JWT check
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    if (payload.exp && Date.now() >= payload.exp * 1000) {
+                        console.error('WebSocket Context: Token expirado detectado');
+                        // Optional: trigger logout or warning
+                    }
+                } catch (e) {
+                    console.error('WebSocket Context: Error decodificando token');
+                }
+
                 console.log('Conectando WebSocket Global...');
 
                 webSocket = new WebSocket(`wss://api-mapa-mental.onrender.com?token=${token}`);
@@ -42,6 +54,8 @@ export const WebSocketProvider = ({ children }) => {
                 };
                 webSocket.onmessage = (event) => {
                     const data = JSON.parse(event.data);
+                    setLastMessage(data);
+
                     if (data.action === 'notification') {
                         console.log('Notificación recibida:', data.message);
                         const newNotification = {
@@ -100,7 +114,7 @@ export const WebSocketProvider = ({ children }) => {
         setUnreadCount(0);
     };
     return (
-        <WebSocketContext.Provider value={{ ws, notifications, unreadCount, markAsRead, resetUnreadCount }}>
+        <WebSocketContext.Provider value={{ ws, notifications, unreadCount, lastMessage, markAsRead, resetUnreadCount }}>
             {children}
         </WebSocketContext.Provider>
     );
