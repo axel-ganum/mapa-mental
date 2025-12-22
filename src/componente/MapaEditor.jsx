@@ -53,7 +53,8 @@ const MapaEditor = () => {
   const queryParams = new URLSearchParams(location.search);
   const queryMapid = queryParams.get('id');
 
-  // WebSocket handlers
+  // Stable ref for the handler to avoid reconnection loops
+  const handleSuccessResponseRef = useRef(null);
   const handleSuccessResponse = useCallback(async (response) => {
     if (response.type === 'error') {
       if (saveToastId.current) {
@@ -111,43 +112,65 @@ const MapaEditor = () => {
     }
   }, [mapId, setNodes, setEdges]);
 
+  // Update the ref whenever the handler changes, but don't trigger reconnects
+  useEffect(() => {
+    handleSuccessResponseRef.current = handleSuccessResponse;
+  }, [handleSuccessResponse]);
+
   const connectWebSocket = useCallback(() => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      console.error('WebSocket Editor: No hay token en localStorage');
+      return;
+    }
 
-    if (ws.current) ws.current.close();
+    if (ws.current) {
+      console.log('WebSocket Editor: Cerrando conexión previa antes de conectar');
+      ws.current.close();
+    }
 
-    ws.current = new WebSocket(`wss://api-mapa-mental.onrender.com?token=${token}`);
+    const wsUrl = `wss://api-mapa-mental.onrender.com?token=${token}`;
+    console.log('WebSocket Editor: Intentando conectar a', wsUrl);
+    ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
-      console.log('WebSocket Editor: Conectado');
+      console.log('WebSocket Editor: Conectado exitosamente');
       if (reconectInter.current) {
         clearTimeout(reconectInter.current);
         reconectInter.current = null;
       }
       if (queryMapid) {
+        console.log('WebSocket Editor: Solicitando mapa', queryMapid);
         ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
       }
     };
 
     ws.current.onmessage = (event) => {
-      handleSuccessResponse(JSON.parse(event.data));
+      try {
+        const data = JSON.parse(event.data);
+        if (handleSuccessResponseRef.current) {
+          handleSuccessResponseRef.current(data);
+        }
+      } catch (err) {
+        console.error('WebSocket Editor: Error parsing message', err);
+      }
     };
 
     ws.current.onerror = (error) => {
-      console.error('WebSocket Editor Error:', error);
+      console.error('WebSocket Editor: Error detectado:', error);
     };
 
     ws.current.onclose = (event) => {
-      console.log('WebSocket Editor: Cerrado', event.reason);
+      console.log('WebSocket Editor: Conexión cerrada. Código:', event.code, 'Razón:', event.reason);
       if (!reconectInter.current) {
+        console.log('WebSocket Editor: Programando reconexión en 5s...');
         reconectInter.current = setTimeout(() => {
           reconectInter.current = null;
           connectWebSocket();
         }, 5000);
       }
     };
-  }, [queryMapid, handleSuccessResponse]);
+  }, [queryMapid]); // Now only depends on queryMapid
 
   useEffect(() => {
     connectWebSocket();
