@@ -48,6 +48,7 @@ const MapaEditor = () => {
   const reconectInter = useRef(null);
   const reactFlowWrapper = useRef(null);
   const saveToastId = useRef(null);
+  const isSavingRef = useRef(false);
   const location = useLocation();
 
   const queryParams = new URLSearchParams(location.search);
@@ -57,6 +58,8 @@ const MapaEditor = () => {
   const handleSuccessResponseRef = useRef(null);
   const handleSuccessResponse = useCallback(async (response) => {
     if (response.type === 'error') {
+      isSavingRef.current = false;
+      setIsSaving(false);
       if (saveToastId.current) {
         toast.update(saveToastId.current, { render: `Error: ${response.message || 'Error desconocido'}`, type: 'error', isLoading: false, autoClose: 3000 });
         saveToastId.current = null;
@@ -70,6 +73,7 @@ const MapaEditor = () => {
 
     if (response.type === 'success') {
       if (response.action === 'saveMap' || response.action === 'updateMap') {
+        isSavingRef.current = false;
         setMapId(response.map?._id || mapId);
         setIsSaving(false);
 
@@ -209,6 +213,7 @@ const MapaEditor = () => {
     }
 
     setIsSaving(true);
+    isSavingRef.current = true;
     saveToastId.current = toast.loading('Generando imagen del mapa...');
 
     try {
@@ -252,14 +257,16 @@ const MapaEditor = () => {
           toast.dismiss(saveToastId.current);
           saveToastId.current = null;
         }
-        if (isSaving) {
+        if (isSavingRef.current) {
+          isSavingRef.current = false;
           setIsSaving(false);
-          toast.error('Tiempo de espera agotado al guardar');
+          toast.error('Tiempo de espera agotado al guardar. Revisa tu conexión.');
         }
       }, 10000);
 
     } catch (error) {
       console.error('Error saving map:', error);
+      isSavingRef.current = false;
       if (saveToastId.current) {
         toast.update(saveToastId.current, {
           render: `Error: ${error.message}`,
@@ -340,8 +347,24 @@ const MapaEditor = () => {
         >
           <Panel position="top-center" className="z-[60]">
             <div className="glass-panel px-4 py-2 rounded-2xl flex items-center gap-3 shadow-2xl">
-              <button onClick={saveMap} disabled={isSaving} className={`premium-button ${isSaving ? 'bg-slate-200' : 'premium-button-green'}`}>
-                {isSaving ? 'Guardando...' : 'Guardar'}
+              <button
+                onClick={saveMap}
+                disabled={isSaving}
+                className={`premium-button flex items-center gap-2 ${isSaving ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'premium-button-green'}`}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                    <span>Guardando...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    <span>Guardar</span>
+                  </>
+                )}
               </button>
               <div className="w-px h-6 bg-slate-200 mx-1" />
               <button onClick={handleAddNode} className="premium-button premium-button-blue">
