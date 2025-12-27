@@ -56,6 +56,11 @@ const MapaEditor = () => {
   const queryParams = new URLSearchParams(location.search);
   const queryMapid = queryParams.get('id');
 
+  const autoSaveTimerRef = useRef(null);
+  const lastSavedNodes = useRef(JSON.stringify(nodes));
+  const lastSavedEdges = useRef(JSON.stringify(edges));
+  const lastUpdateByMe = useRef(0);
+
   // Stable ref for the handler to avoid reconnection loops
   const handleSuccessResponseRef = useRef(null);
   const handleSuccessResponse = useCallback(async (response) => {
@@ -87,13 +92,19 @@ const MapaEditor = () => {
             autoClose: 3000
           });
           saveToastId.current = null;
-        } else {
-          toast.success(response.action === 'saveMap' ? 'Mapa creado exitosamente' : 'Cambios guardados');
+        } else if (response.action === 'saveMap') {
+          // Only show manual success toast for creation if no toast ID was present
+          toast.success('Mapa creado exitosamente');
         }
 
         setShowModal(false);
         setLoading(false);
       } else if (response.action === 'mapUpdated' || response.action === 'nodeDeleted') {
+        const now = Date.now();
+        if (now - lastUpdateByMe.current < 3000) {
+          console.log('Suppressing own update notification');
+          return;
+        }
         toast.info(response.action === 'mapUpdated' ? 'Mapa actualizado por otro usuario' : 'Nodo eliminado por otro usuario');
         ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: response.map._id } }));
       } else if (response.action === 'getMap' && response.map) {
@@ -158,29 +169,44 @@ const MapaEditor = () => {
     addNode(newNode);
   }, [addNode]);
 
-  const saveMap = async () => {
+  const saveMap = async (isManual = true) => {
     if (!ws || ws.readyState !== WebSocket.OPEN) {
-      toast.error('No hay conexión con el servidor. Por favor, espera o reinicia sesión.');
+      if (isManual) toast.error('No hay conexión con el servidor. Por favor, espera o reinicia sesión.');
       return;
     }
 
+    // Don't auto-save if we are already saving
+    if (!isManual && isSavingRef.current) return;
+
     setIsSaving(true);
     isSavingRef.current = true;
-    saveToastId.current = toast.loading('Generando imagen del mapa...');
+
+    if (isManual) {
+      saveToastId.current = toast.loading('Generando imagen del mapa...');
+    }
 
     try {
       if (!reactFlowWrapper.current) throw new Error('Contenedor del mapa no encontrado');
 
-      const canvas = await html2canvas(reactFlowWrapper.current, {
-        useCORS: true,
-        scale: 2,
-        logging: false,
-        backgroundColor: '#f8fafc'
-      });
+      let image = null;
+      // Only generate thumbnail if it's a manual save or if it's the first save
+      if (isManual || !mapId) {
+        if (isManual && saveToastId.current) {
+          toast.update(saveToastId.current, { render: 'Generando imagen del mapa...', type: 'info', isLoading: true });
+        }
 
-      const image = canvas.toDataURL('image/png');
+        const canvas = await html2canvas(reactFlowWrapper.current, {
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: '#f8fafc'
+        });
+        image = canvas.toDataURL('image/png');
+      }
 
-      toast.update(saveToastId.current, { render: 'Enviando al servidor...', type: 'info', isLoading: true });
+      if (isManual && saveToastId.current) {
+        toast.update(saveToastId.current, { render: 'Enviando al servidor...', type: 'info', isLoading: true });
+      }
 
       const payload = {
         id: mapId,
@@ -194,7 +220,7 @@ const MapaEditor = () => {
           data: { content: n.data?.content || '' }
         })),
         edges,
-        thumbnail: image
+        ...(image ? { thumbnail: image } : {})
       };
 
       ws.send(JSON.stringify({
@@ -202,24 +228,39 @@ const MapaEditor = () => {
         payload
       }));
 
-      // The actual success/error toast will be triggered by handleSuccessResponse
-      // but we'll dismiss this one after a timeout if no response comes
-      setTimeout(() => {
-        if (saveToastId.current) {
-          toast.dismiss(saveToastId.current);
-          saveToastId.current = null;
-        }
-        if (isSavingRef.current) {
+      lastUpdateByMe.current = Date.now();
+
+      // Update comparison refs
+      lastSavedNodes.current = JSON.stringify(nodes);
+      lastSavedEdges.current = JSON.stringify(edges);
+
+      // For manual save, keep the toast logic
+      if (isManual) {
+        setTimeout(() => {
+          if (saveToastId.current) {
+            toast.dismiss(saveToastId.current);
+            saveToastId.current = null;
+          }
+          if (isSavingRef.current) {
+            isSavingRef.current = false;
+            setIsSaving(false);
+            toast.error('Tiempo de espera agotado al guardar. Revisa tu conexión.');
+          }
+        }, 10000);
+      } else {
+        // Auto-save cleanup
+        setTimeout(() => {
           isSavingRef.current = false;
           setIsSaving(false);
-          toast.error('Tiempo de espera agotado al guardar. Revisa tu conexión.');
-        }
-      }, 10000);
+        }, 2000);
+      }
 
     } catch (error) {
       console.error('Error saving map:', error);
       isSavingRef.current = false;
-      if (saveToastId.current) {
+      setIsSaving(false);
+
+      if (isManual && saveToastId.current) {
         toast.update(saveToastId.current, {
           render: `Error: ${error.message}`,
           type: 'error',
@@ -228,9 +269,32 @@ const MapaEditor = () => {
         });
         saveToastId.current = null;
       }
-      setIsSaving(false);
     }
   };
+
+  // Auto-save effect
+  useEffect(() => {
+    if (!mapId) return; // Don't auto-save if the map isn't created yet (to avoid multiple creations)
+
+    const currentNodesStr = JSON.stringify(nodes);
+    const currentEdgesStr = JSON.stringify(edges);
+
+    if (currentNodesStr === lastSavedNodes.current && currentEdgesStr === lastSavedEdges.current) {
+      return;
+    }
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveMap(false);
+    }, 5000); // Save after 5 seconds of inactivity
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [nodes, edges, mapId]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -307,7 +371,7 @@ const MapaEditor = () => {
           <Panel position="top-center" className="z-[60]">
             <div className="glass-panel px-4 py-2 rounded-2xl flex items-center gap-3 shadow-2xl">
               <button
-                onClick={saveMap}
+                onClick={() => saveMap(true)}
                 disabled={isSaving}
                 className={`premium-button flex items-center gap-2 min-w-[120px] justify-center ${isSaving ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'premium-button-green'}`}
               >
@@ -336,6 +400,11 @@ const MapaEditor = () => {
               <button onClick={() => setShowShare(true)} className="px-4 py-2 hover:bg-slate-100 rounded-xl transition-colors font-medium text-slate-600">
                 Compartir
               </button>
+            </div>
+          </Panel>
+          <Panel position="bottom-right" className="mb-2 mr-2">
+            <div className={`text-[10px] font-medium px-2 py-1 rounded-full backdrop-blur-md border transition-all duration-500 ${isSaving ? 'bg-amber-100/80 text-amber-700 border-amber-200 animate-pulse' : 'bg-emerald-100/80 text-emerald-700 border-emerald-200 opacity-60'}`}>
+              {isSaving ? 'Sincronizando...' : 'Sincronizado'}
             </div>
           </Panel>
           <Controls position="bottom-left" />
