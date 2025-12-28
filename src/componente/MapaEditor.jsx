@@ -32,6 +32,8 @@ const MapaEditor = () => {
     setNodes,
     setEdges,
     updateNodeData,
+    updateNodePositionSilent,
+    updateNodeDataSilent,
     undo,
     redo,
     autoLayout,
@@ -107,6 +109,12 @@ const MapaEditor = () => {
         }
         toast.info(response.action === 'mapUpdated' ? 'Mapa actualizado por otro usuario' : 'Nodo eliminado por otro usuario');
         ws.current.send(JSON.stringify({ action: 'getMap', payload: { id: response.map._id } }));
+      } else if (response.action === 'nodeMoved') {
+        // Real-time position update from another user
+        updateNodePositionSilent(response.nodeId, response.position);
+      } else if (response.action === 'nodeEdited') {
+        // Real-time content update from another user
+        updateNodeDataSilent(response.nodeId, { content: response.content });
       } else if (response.action === 'getMap' && response.map) {
         setMapId(response.map._id);
         setTitle(response.map.title);
@@ -118,6 +126,14 @@ const MapaEditor = () => {
           data: {
             ...node.data,
             content: node.content || '', // Use raw content
+            onEdit: (nodeId, content) => {
+              if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                ws.current.send(JSON.stringify({
+                  action: 'nodeEdited',
+                  payload: { mapId: response.map._id, nodeId, content }
+                }));
+              }
+            }
           }
         }));
 
@@ -127,7 +143,7 @@ const MapaEditor = () => {
         setShowModal(false);
       }
     }
-  }, [mapId, setNodes, setEdges]);
+  }, [mapId, setNodes, setEdges, updateNodePositionSilent, updateNodeDataSilent, ws]);
 
   // React to global WebSocket messages
   useEffect(() => {
@@ -140,6 +156,7 @@ const MapaEditor = () => {
     if (queryMapid && ws && ws.readyState === WebSocket.OPEN) {
       console.log('MapaEditor: Solicitando mapa inicial', queryMapid);
       ws.send(JSON.stringify({ action: 'getMap', payload: { id: queryMapid } }));
+      ws.send(JSON.stringify({ action: 'joinMap', payload: { mapId: queryMapid } }));
     }
   }, [queryMapid, ws]);
 
@@ -164,10 +181,20 @@ const MapaEditor = () => {
       id,
       type: 'custom',
       position: { x: Math.random() * 400, y: Math.random() * 300 },
-      data: { content: '' },
+      data: {
+        content: '',
+        onEdit: (nodeId, content) => {
+          if (ws.current && ws.current.readyState === WebSocket.OPEN && mapId) {
+            ws.current.send(JSON.stringify({
+              action: 'nodeEdited',
+              payload: { mapId, nodeId, content }
+            }));
+          }
+        }
+      },
     };
     addNode(newNode);
-  }, [addNode]);
+  }, [addNode, mapId, ws]);
 
   const saveMap = async (isManual = true) => {
     if (!ws || ws.readyState !== WebSocket.OPEN) {
@@ -272,6 +299,19 @@ const MapaEditor = () => {
     }
   };
 
+  const onNodeDrag = useCallback((event, node) => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN && mapId) {
+      ws.current.send(JSON.stringify({
+        action: 'nodeMoved',
+        payload: {
+          mapId,
+          nodeId: node.id,
+          position: node.position
+        }
+      }));
+    }
+  }, [mapId, ws]);
+
   // Auto-save effect
   useEffect(() => {
     if (!mapId) return; // Don't auto-save if the map isn't created yet (to avoid multiple creations)
@@ -360,6 +400,7 @@ const MapaEditor = () => {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onNodeDrag={onNodeDrag}
           nodeTypes={nodeTypes}
           fitView
           defaultEdgeOptions={{

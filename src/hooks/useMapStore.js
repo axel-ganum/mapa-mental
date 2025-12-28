@@ -57,6 +57,24 @@ const useMapStore = create((set, get) => ({
         get().takeSnapshot();
     },
 
+    updateNodePositionSilent: (nodeId, position) => {
+        set({
+            nodes: get().nodes.map((node) =>
+                node.id === nodeId ? { ...node, position } : node
+            ),
+        });
+        // No snapshot for rapid real-time updates
+    },
+
+    updateNodeDataSilent: (nodeId, data) => {
+        set({
+            nodes: get().nodes.map((node) =>
+                node.id === nodeId ? { ...node, data: { ...node.data, ...data } } : node
+            ),
+        });
+        // No snapshot for rapid real-time updates
+    },
+
     takeSnapshot: () => {
         const { nodes, edges, history } = get();
         set({

@@ -21,6 +21,9 @@ const MyCustomNode = ({ id, data }) => {
 
   const handleTextChange = (val) => {
     updateNodeData(id, { content: val });
+    if (data.onEdit) {
+      data.onEdit(id, val);
+    }
   };
 
   return (
